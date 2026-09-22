@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function myDoc() { return get(/databases/$(database)/documents/users/$(request.auth.uid)); }
+    function myRole() { return signedIn() ? myDoc().data.role : 'anon'; }
+    function isAdmin() { return myRole() == 'admin'; }
+    function isApproved() { return myRole() == 'admin' || myRole() == 'staff' || myRole() == 'viewer'; }
+    function canWrite() { return myRole() == 'admin' || myRole() == 'staff'; }
+
+    // users: כל אחד עם חשבון יכול ליצור את הרשומה שלו (בזמן ההרשמה) ולקרוא
+    // אותה בחזרה כדי לבדוק את הסטטוס שלו. רק מנהל יכול לשנות תפקיד (role) של
+    // מישהו, כולל את עצמו. לכל משתמש מותר לעדכן רק את השדות שאינם role/email.
+    match /users/{uid} {
+      allow get: if signedIn() && (request.auth.uid == uid || isApproved());
+      allow list: if isAdmin();
+      allow create: if signedIn() && request.auth.uid == uid
+                    && request.resource.data.email == request.auth.token.email
+                    && request.resource.data.role in ['pending','admin'];
+      allow update: if isAdmin()
+                    || (signedIn() && request.auth.uid == uid
+                        && request.resource.data.role == resource.data.role
+                        && request.resource.data.email == resource.data.email);
+      allow delete: if isAdmin();
+    }
+
+    // leads: קריאה לכל מי שמאושר/ת. כתיבה רק לצוות ומנהל. מחיקה רק למנהל.
+    match /leads/{id} {
+      allow read: if isApproved();
+      allow create, update: if canWrite();
+      allow delete: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

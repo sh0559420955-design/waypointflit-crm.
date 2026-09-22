@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ניהול משתמשים – WaypointFlit CRM</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef1f7;--card:#fff;--ink:#102040;--mut:#5d6a85;--line:#d6dcea;--pri:#d8541a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Heebo,system-ui,sans-serif}
+main{max-width:680px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:24px;display:flex;justify-content:space-between;align-items:center}
+h1 a{font-size:14px;color:var(--pri);text-decoration:none;font-weight:600}
+.row{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.row b{display:block}
+.row span{color:var(--mut);font-size:14px}
+select,button{font:inherit;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
+button.danger{color:#b4423a;background:none;border:0;cursor:pointer}
+.badge{font-size:12px;padding:2px 9px;border-radius:999px;background:#d99a1f;color:#fff}
+.badge.admin{background:#1f6f6b}.badge.staff{background:#3b82c4}.badge.viewer{background:#8a9a99}
+.empty{color:var(--mut);text-align:center;padding:30px 0}
+</style>
+</head>
+<body>
+<main>
+<h1><span>ניהול משתמשים</span><a href="index.html">חזרה ל-CRM</a></h1>
+<div id="list"></div>
+</main>
+<script type="module">
+import { requireUser, db, logout } from "./auth-guard.js";
+import { collection, onSnapshot, doc, updateDoc, deleteDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const ROLE_LABEL = { pending: "ממתין לאישור", viewer: "צפייה", staff: "צוות", admin: "מנהל" };
+
+const me = await requireUser();
+if (me.role !== "admin") {
+  document.body.innerHTML = '<main><p style="text-align:center;padding:40px 16px">העמוד הזה זמין רק למנהל.<br><a href="index.html">חזרה ל-CRM</a></p></main>';
+} else {
+  onSnapshot(query(collection(db, "users"), orderBy("createdAt", "desc")), snap => {
+    const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    $("list").innerHTML = rows.length ? rows.map(u => `
+      <div class="row" data-id="${esc(u.id)}">
+        <div><b>${esc(u.name || u.email)}</b><span>${esc(u.email)}</span></div>
+        <span class="badge ${esc(u.role)}">${esc(ROLE_LABEL[u.role] || u.role)}</span>
+        <select data-act="role" ${u.id === me.uid ? "disabled" : ""}>
+          ${Object.keys(ROLE_LABEL).filter(r => r !== "pending").map(r => `<option value="${r}" ${u.role === r ? "selected" : ""}>${ROLE_LABEL[r]}</option>`).join("")}
+        </select>
+        ${u.id === me.uid ? "" : '<button class="danger" data-act="remove" type="button">הסרה</button>'}
+      </div>`).join("") : '<p class="empty">אין משתמשים עדיין.</p>';
+  });
+
+  $("list").addEventListener("change", async e => {
+    if (e.target.dataset.act !== "role") return;
+    const id = e.target.closest(".row").dataset.id;
+    await updateDoc(doc(db, "users", id), { role: e.target.value });
+  });
+  $("list").addEventListener("click", async e => {
+    const b = e.target.closest('[data-act="remove"]'); if (!b) return;
+    if (!b.dataset.armed) { b.dataset.armed = "1"; b.textContent = "לאשר הסרה?"; return; }
+    await deleteDoc(doc(db, "users", b.closest(".row").dataset.id));
+    // הערה: זה מוחק את רשומת ההרשאה בלבד. חשבון הכניסה עצמו (Firebase Auth)
+    // לא נמחק מכאן - להסרה מלאה יש למחוק אותו גם מ-Authentication בקונסולה.
+  });
+}
+</script>
+</body>
+</html>

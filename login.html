@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>כניסה – WaypointFlit CRM</title>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef1f7;--card:#fff;--ink:#102040;--mut:#5d6a85;--line:#d6dcea;--pri:#d8541a}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg);color:var(--ink);font:16px/1.5 Heebo,system-ui,sans-serif}
+.box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:26px;width:100%;max-width:380px}
+h1{font-size:22px;margin:0 0 4px;text-align:center}
+p.sub{color:var(--mut);text-align:center;margin:0 0 18px;font-size:14px}
+label{display:block;font-size:14px;color:var(--mut);margin:10px 0 4px}
+input{width:100%;font:inherit;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.btn{width:100%;margin-top:16px;background:var(--pri);color:#fff;border:0;border-radius:8px;padding:11px;font:inherit;font-weight:700;cursor:pointer}
+.btn.sec{background:none;color:var(--pri);margin-top:8px}
+#err{color:#b4423a;font-size:14px;text-align:center;margin-top:10px;min-height:18px}
+#pending{display:none;text-align:center}
+#pending .dot{width:10px;height:10px;background:#d99a1f;border-radius:50%;display:inline-block;margin-inline-end:6px}
+#form{display:block}
+</style>
+</head>
+<body>
+<div class="box">
+<h1>✈️ WaypointFlit</h1>
+<p class="sub">מערכת לניהול לידים</p>
+
+<div id="form">
+<label>אימייל<input id="email" type="email" autocomplete="username"></label>
+<label>סיסמה (6 תווים לפחות)<input id="pass" type="password" autocomplete="current-password"></label>
+<button class="btn" id="signin" type="button">כניסה</button>
+<button class="btn sec" id="signup" type="button">הרשמה ראשונה</button>
+<p id="err"></p>
+</div>
+
+<div id="pending">
+<p><span class="dot"></span>החשבון שלך ממתין לאישור מנהל.</p>
+<p class="sub">כשתאושרי תוכלי להיכנס. אפשר לרענן כדי לבדוק שוב.</p>
+<button class="btn sec" id="signout" type="button">התנתקות</button>
+</div>
+
+</div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { firebaseConfig, ADMIN_EMAILS } from "./firebase-config.js";
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const $ = id => document.getElementById(id);
+const showErr = m => { $("err").textContent = m; };
+
+const FRIENDLY = {
+  "auth/invalid-email": "כתובת אימייל לא תקינה",
+  "auth/user-not-found": "לא נמצא חשבון עם המייל הזה",
+  "auth/wrong-password": "סיסמה שגויה",
+  "auth/invalid-credential": "פרטי ההתחברות שגויים",
+  "auth/email-already-in-use": "כבר יש חשבון עם המייל הזה, נסו להתחבר",
+  "auth/weak-password": "הסיסמה קצרה מדי (6 תווים לפחות)"
+};
+
+$("signin").addEventListener("click", async () => {
+  showErr("");
+  try { await signInWithEmailAndPassword(auth, $("email").value.trim(), $("pass").value); }
+  catch (e) { showErr(FRIENDLY[e.code] || "שגיאה בהתחברות"); }
+});
+
+$("signup").addEventListener("click", async () => {
+  showErr("");
+  const email = $("email").value.trim();
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, $("pass").value);
+    const role = ADMIN_EMAILS.includes(email) ? "admin" : "pending";
+    await setDoc(doc(db, "users", cred.user.uid), { email, name: email.split("@")[0], role, createdAt: serverTimestamp() });
+  } catch (e) { showErr(FRIENDLY[e.code] || "שגיאה בהרשמה"); }
+});
+
+$("signout").addEventListener("click", () => signOut(auth));
+
+onAuthStateChanged(auth, async user => {
+  if (!user) { $("form").style.display = "block"; $("pending").style.display = "none"; return; }
+  const snap = await getDoc(doc(db, "users", user.uid));
+  const role = snap.exists() ? snap.data().role : "pending";
+  if (role === "pending" || !snap.exists()) {
+    $("form").style.display = "none"; $("pending").style.display = "block";
+  } else {
+    location.href = "index.html";
+  }
+});
+</script>
+</body>
+</html>
