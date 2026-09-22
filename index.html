@@ -162,6 +162,7 @@ summary{cursor:pointer;color:var(--pri);font-weight:600;font-size:14px}
 
 <script type="module">
 import { requireUser, db, logout } from "./auth-guard.js";
+import { startTracking } from "./session-tracker.js";
 import { TPL } from "./templates.js";
 import { SEED } from "./seed.js";
 import { collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, getDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
@@ -179,7 +180,8 @@ const me = await requireUser();
 $("who").innerHTML = esc(me.name||me.email) + " &middot; " + (me.role==="admin"?"\u05de\u05e0\u05d4\u05dc":me.role==="staff"?"\u05e6\u05d5\u05d5\u05ea":"\u05e6\u05e4\u05d9\u05d9\u05d4 \u05d1\u05dc\u05d1\u05d3") +
   (me.role==="admin" ? ' &middot; <a href="admin.html">\u05e0\u05d9\u05d4\u05d5\u05dc \u05de\u05e9\u05ea\u05de\u05e9\u05d9\u05dd</a>' : "") +
   ' &middot; <a href="#" id="out">\u05d4\u05ea\u05e0\u05ea\u05e7\u05d5\u05ea</a>';
-$("out").addEventListener("click", e => { e.preventDefault(); logout(); location.href="login.html"; });
+const tracker = startTracking(me, async () => { try { await logout(); } catch (e) {} location.href = "login.html?timeout=1"; });
+$("out").addEventListener("click", e => { e.preventDefault(); tracker.close(); logout(); location.href="login.html"; });
 const isAdmin = me.role === "admin";
 const canWrite = me.role === "admin" || me.role === "staff";
 if (!canWrite) $("f").classList.add("hide");

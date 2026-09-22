@@ -20,16 +20,29 @@ button.danger{color:#b4423a;background:none;border:0;cursor:pointer}
 .badge{font-size:12px;padding:2px 9px;border-radius:999px;background:#d99a1f;color:#fff}
 .badge.admin{background:#1f6f6b}.badge.staff{background:#3b82c4}.badge.viewer{background:#8a9a99}
 .empty{color:var(--mut);text-align:center;padding:30px 0}
+h2{font-size:19px;margin:26px 0 10px}
+.urow{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px}
+.urow .top2{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.urow .top2 b{font-size:15px}
+.urow .tot{font-size:14px;color:var(--pri);font-weight:700}
+.urow .sub2{color:var(--mut);font-size:13px;margin-top:2px}
+details.sess{margin-top:6px}
+details.sess summary{font-size:13px;color:var(--pri);cursor:pointer}
+.srow{display:flex;justify-content:space-between;font-size:13px;color:var(--mut);padding:3px 0;border-top:1px solid var(--line)}
+.live{color:#1f6f6b;font-weight:600}
 </style>
 </head>
 <body>
 <main>
 <h1><span>ניהול משתמשים</span><a href="index.html">חזרה ל-CRM</a></h1>
 <div id="list"></div>
+<h2>יומן שימוש</h2>
+<p style="color:var(--mut);font-size:13px;margin-top:-6px">זמן פעילות בפועל לכל משתמשת, כולל כניסה אחרונה. "כעת" מוצג כשהיא פעילה עכשיו בעמוד. התנתקות אוטומטית קורית אחרי 20 דקות ללא פעילות.</p>
+<div id="usage"></div>
 </main>
 <script type="module">
 import { requireUser, db, logout } from "./auth-guard.js";
-import { collection, onSnapshot, doc, updateDoc, deleteDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { collection, onSnapshot, doc, updateDoc, deleteDoc, orderBy, query, limit } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -63,6 +76,34 @@ if (me.role !== "admin") {
     await deleteDoc(doc(db, "users", b.closest(".row").dataset.id));
     // הערה: זה מוחק את רשומת ההרשאה בלבד. חשבון הכניסה עצמו (Firebase Auth)
     // לא נמחק מכאן - להסרה מלאה יש למחוק אותו גם מ-Authentication בקונסולה.
+  });
+
+  // ---- יומן שימוש ----
+  const fmtHM = ms => { const m = Math.round(ms/60000); return Math.floor(m/60)+"\u05e9 "+(m%60)+"\u05d3"; };
+  const fmtDT = t => new Date(t).toLocaleString("he-IL", { day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit" });
+  const LIVE_MS = 3*60*1000; // אם lastActive עודכן ב-3 הדקות האחרונות, נחשב "פעיל/ה כעת"
+
+  onSnapshot(query(collection(db, "sessions"), orderBy("start","desc"), limit(500)), snap => {
+    const sessions = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+    const now = Date.now(), weekAgo = now - 7*864e5, dayAgo = now - 864e5;
+    const byUid = {};
+    sessions.forEach(s => { (byUid[s.uid] = byUid[s.uid] || []).push(s); });
+    const uids = Object.keys(byUid).sort((a,b) => (byUid[b][0]?.start||0) - (byUid[a][0]?.start||0));
+    $("usage").innerHTML = uids.length ? uids.map(uid => {
+      const list = byUid[uid], first = list[0];
+      const dur = s => (s.end || s.lastActive || s.start) - s.start;
+      const isLive = s => !s.end && s.lastActive && (now - s.lastActive) < LIVE_MS;
+      const weekMs = list.filter(s => s.start >= weekAgo).reduce((a,s)=>a+dur(s),0);
+      const todayMs = list.filter(s => s.start >= dayAgo).reduce((a,s)=>a+dur(s),0);
+      return `
+      <div class="urow">
+        <div class="top2"><b>${esc(first.name || first.email || "\u05de\u05e9\u05ea\u05de\u05e9")}</b><span class="tot">${fmtHM(weekMs)} \u05d1\u05e9\u05d1\u05d5\u05e2</span></div>
+        <div class="sub2">\u05d4\u05d9\u05d5\u05dd: ${fmtHM(todayMs)} &middot; \u05db\u05e0\u05d9\u05e1\u05d4 \u05d0\u05d7\u05e8\u05d5\u05e0\u05d4: ${fmtDT(first.start)}${isLive(first)?' &middot; <span class="live">\u05e4\u05e2\u05d9\u05dc/\u05d4 \u05db\u05e2\u05ea</span>':''}</div>
+        <details class="sess"><summary>${list.length} \u05db\u05e0\u05d9\u05e1\u05d5\u05ea \u05d0\u05d7\u05e8\u05d5\u05e0\u05d5\u05ea</summary>
+          ${list.slice(0,15).map(s => `<div class="srow"><span>${fmtDT(s.start)}</span><span>${isLive(s)?'<span class="live">\u05e4\u05e2\u05d9\u05dc/\u05d4 \u05db\u05e2\u05ea</span>':fmtHM(dur(s))}</span></div>`).join("")}
+        </details>
+      </div>`;
+    }).join("") : '<p class="empty">\u05e2\u05d3\u05d9\u05d9\u05df \u05d0\u05d9\u05df \u05e0\u05ea\u05d5\u05e0\u05d9 \u05e9\u05d9\u05de\u05d5\u05e9.</p>';
   });
 }
 </script>

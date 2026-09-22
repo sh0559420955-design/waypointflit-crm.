@@ -32,6 +32,17 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // sessions: יומן כניסה/שימוש של כל משתמש. כל משתמש יכול ליצור ולעדכן רק
+    // את הסשנים של עצמו (uid תואם), ולעולם לא לקרוא סשנים של אחרים. רק מנהל
+    // יכול לקרוא את כל היומן, לצורך מעקב שימוש.
+    match /sessions/{id} {
+      allow read: if isAdmin();
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
+      allow update: if signedIn() && resource.data.uid == request.auth.uid
+                    && request.resource.data.uid == request.auth.uid;
+      allow delete: if isAdmin();
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
