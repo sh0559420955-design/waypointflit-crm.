@@ -4,26 +4,384 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>WaypointFlit CRM</title>
-<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;800&display=swap" rel="stylesheet">
 <style>
-body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#eef1f7;color:#102040;font:16px/1.5 Heebo,system-ui,sans-serif;text-align:center}
-a{color:#d8541a;font-weight:600}
+:root{--bg:#eef1f7;--card:#fff;--ink:#102040;--mut:#5d6a85;--line:#d6dcea;--pri:#d8541a;--onpri:#fff;--danger:#b4423a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Heebo,system-ui,sans-serif;border-top:5px solid #f07031}
+main{max-width:1200px;margin:0 auto;padding:16px 14px 60px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+h1{font-size:26px;margin:0;display:flex;align-items:center;gap:10px}
+#who{font-size:14px;color:var(--mut);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+#who a{color:var(--pri);text-decoration:none;font-weight:600}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:16px}
+.panel h2{font-size:16px;margin:0 0 10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.w{grid-column:1/-1}
+label{display:flex;flex-direction:column;font-size:14px;color:var(--mut);gap:4px}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%}
+textarea{min-height:60px;resize:vertical}
+.btn{font:inherit;font-weight:700;border:0;border-radius:8px;padding:10px 16px;cursor:pointer;background:var(--pri);color:var(--onpri);text-decoration:none;display:inline-block}
+.btn.sec{background:var(--bg);color:var(--ink);border:1px solid var(--line);font-weight:600}
+.btn:disabled{opacity:.5;cursor:default}
+#chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+#chips button{font:inherit;font-size:14px;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer}
+#chips button.on{background:var(--pri);color:var(--onpri);border-color:var(--pri)}
+#q{margin-bottom:14px}
+#list{display:grid;grid-template-columns:1fr;gap:12px}
+@media(min-width:800px){#list{grid-template-columns:1fr 1fr}}
+@media(min-width:1200px){#list{grid-template-columns:1fr 1fr 1fr}}
+.lead{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.top strong{font-size:17px}
+.flag{background:#f07031;color:#fff;border-radius:999px;padding:1px 9px;font-size:12px;font-weight:600;margin-inline-start:8px}
+.meta{color:var(--mut);font-size:14px;display:flex;flex-wrap:wrap;gap:4px 12px;margin-top:4px}
+.lead p.note{margin:8px 0 0;font-size:14px}
+.off{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--bg);border-radius:8px;padding:6px 9px;margin-top:8px;font-size:14px}
+.off button{background:none;border:0;color:var(--danger);cursor:pointer;font:inherit}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center}
+.acts a,.acts button,.acts select{font-size:14px}
+.acts .link{color:var(--pri);background:none;border:0;font-weight:600;cursor:pointer;padding:0}
+.acts button.danger{color:var(--danger);background:none;border:0;cursor:pointer}
+.fu{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--mut)}
+.fu input{width:auto;padding:4px 6px}
+.ql{font-size:13px;margin-top:8px;padding:8px 10px;background:var(--bg);border-radius:8px}
+.ql div{display:flex;justify-content:space-between;gap:8px;padding:2px 0}
+.ql button{background:none;border:0;color:var(--danger);cursor:pointer;font:inherit;padding:0 6px}
+select.status{font-weight:600}
+.empty{color:var(--mut);text-align:center;padding:30px 0}
+#msg{color:var(--danger);text-align:center;min-height:20px;margin-bottom:8px}
+.modal{position:fixed;inset:0;background:rgba(8,16,36,.65);display:none;z-index:50;overflow:auto;padding:16px}
+.modal.on{display:block}
+.box{max-width:1000px;margin:0 auto;background:var(--bg);border-radius:14px;padding:16px}
+.mtop{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;font-size:18px;font-weight:700}
+.qgrid{display:grid;grid-template-columns:1fr;gap:14px}
+@media(min-width:860px){.qgrid{grid-template-columns:380px 1fr}}
+.sheet{background:#fff;color:#102040;border-radius:12px;overflow:hidden;border:1px solid #d6dcea}
+.sheet .hd{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:4px solid #f07031}
+.sheet .hd b{font-size:20px}
+.sheet .bd{padding:14px 20px}
+.row2{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #e6eaf3}
+.row2 span:first-child{color:#5d6a85}.row2 span:last-child{font-weight:600;text-align:left}
+.tot{background:#102040;color:#fff;border-radius:10px;padding:12px 16px;margin:14px 0;display:flex;justify-content:space-between;align-items:center}
+.tot b{font-size:24px;color:#f58a24}
+.sheet h3{font-size:15px;margin:14px 0 6px}.sheet ul{margin:0;padding:0 20px 0 0}.sheet p{margin:0;white-space:pre-line}
+.mmtxt{min-height:220px;font-size:16px}
+details{margin-top:10px}
+summary{cursor:pointer;color:var(--pri);font-weight:600;font-size:14px}
+.hide{display:none!important}
+@media print{body>*:not(.modal){display:none!important}.modal{position:static;background:none;padding:0}.box{padding:0;background:none}.noprint{display:none!important}}
 </style>
 </head>
 <body>
-<div id="app">טוען…</div>
+<main>
+<header>
+<h1>&#9992;&#65039; WaypointFlit CRM</h1>
+<div id="who">&#1496;&#1493;&#1506;&#1503;&#8230;</div>
+</header>
+
+<div class="panel">
+<h2>&#1492;&#1493;&#1505;&#1508;&#1514; &#1508;&#1504;&#1497;&#1497;&#1492;</h2>
+<form id="f" autocomplete="off">
+<div class="grid">
+<label>&#1513;&#1501;<input id="name" required></label>
+<label>&#1496;&#1500;&#1508;&#1493;&#1503;<input id="phone" type="tel" required></label>
+<label class="w">&#1495;&#1489;&#1497;&#1500;&#1492;<input id="interest" value="&#1493;&#1500;&#1497;&#1504;&#1490;&#1512;&#1491; &ndash; &#1513;&#1489;&#1493;&#1506; &#1488;&#1495;&#1512;&#1497; &#1505;&#1493;&#1499;&#1493;&#1514;"></label>
+<label>&#1502;&#1505;&#1508;&#1512; &#1504;&#1493;&#1505;&#1506;&#1497;&#1501;<input id="pax" type="number" min="1" value="2"></label>
+<label class="w">&#1492;&#1506;&#1512;&#1492;<textarea id="note"></textarea></label>
+</div>
+<button class="btn" type="submit">&#1492;&#1493;&#1505;&#1508;&#1514; &#1508;&#1504;&#1497;&#1497;&#1492;</button>
+</form>
+</div>
+
+<div id="msg" role="alert"></div>
+
+<div class="panel" id="adminTools">
+<h2>&#1499;&#1500;&#1497;&#1501; &#1500;&#1502;&#1504;&#1492;&#1500;</h2>
+<div class="acts">
+<button class="btn sec" id="seedBtn" type="button">&#1497;&#1489;&#1493;&#1488; &#1512;&#1488;&#1513;&#1493;&#1504;&#1497; (128 &#1508;&#1504;&#1497;&#1493;&#1514;)</button>
+<button class="btn sec" id="expBtn" type="button">&#1497;&#1497;&#1510;&#1493;&#1488; &#1500;-CSV</button>
+<button class="btn sec" id="bkpBtn" type="button">&#1490;&#1497;&#1489;&#1493;&#1497; &#1502;&#1500;&#1488; (JSON)</button>
+</div>
+<details><summary>&#1497;&#1497;&#1489;&#1493;&#1488; &#1502;&#1511;&#1493;&#1489;&#1509; CSV &#1504;&#1493;&#1505;&#1507;</summary>
+<p style="font-size:13px;color:var(--mut)">&#1506;&#1502;&#1493;&#1491;&#1493;&#1514; &#1504;&#1491;&#1512;&#1513;&#1493;&#1514;: name,phone,interest,pax,note,status,created,source</p>
+<textarea id="csvBox" placeholder="&#1492;&#1491;&#1489;&#1497;&#1511;&#1493; &#1499;&#1488;&#1503; &#1496;&#1511;&#1505;&#1496; CSV"></textarea>
+<button class="btn sec" id="csvBtn" type="button">&#1497;&#1497;&#1489;&#1493;&#1488; &#1502;&#1492;&#1496;&#1511;&#1505;&#1496;</button>
+</details>
+</div>
+
+<div id="chips"></div>
+<input id="q" type="search" placeholder="&#1495;&#1497;&#1508;&#1493;&#1513; &#1500;&#1508;&#1497; &#1513;&#1501;, &#1496;&#1500;&#1508;&#1493;&#1503; &#1488;&#1493; &#1492;&#1506;&#1512;&#1492;">
+<div id="list"></div>
+</main>
+
+<div class="modal" id="qm"><div class="box">
+<div class="mtop noprint"><span>&#1492;&#1510;&#1506;&#1514; &#1502;&#1495;&#1497;&#1512;</span><button class="btn sec" id="qclose" type="button">&#1505;&#1490;&#1497;&#1512;&#1492;</button></div>
+<div class="qgrid">
+<div class="noprint">
+<div class="grid">
+<label>&#1513;&#1501; &#1492;&#1500;&#1511;&#1493;&#1495;<input id="q_name"></label>
+<label>&#1496;&#1500;&#1508;&#1493;&#1503;<input id="q_phone"></label>
+<label class="w">&#1497;&#1506;&#1491;<input id="q_dest"></label>
+<label>&#1497;&#1510;&#1497;&#1488;&#1492;<input id="q_d1" type="date"></label>
+<label>&#1495;&#1494;&#1512;&#1492;<input id="q_d2" type="date"></label>
+<label>&#1502;&#1489;&#1493;&#1490;&#1512;&#1497;&#1501;<input id="q_ad" type="number" min="0"></label>
+<label>&#1497;&#1500;&#1491;&#1497;&#1501;<input id="q_ch" type="number" min="0"></label>
+<label>&#1502;&#1495;&#1497;&#1512; &#1500;&#1504;&#1493;&#1505;&#1506; (&#8362;)<input id="q_pr" type="number" min="0"></label>
+<label>&#1489;&#1514;&#1493;&#1511;&#1507; &#1506;&#1491;<input id="q_vd" type="date"></label>
+<label class="w">&#1502;&#1500;&#1493;&#1503;<input id="q_hotel"></label>
+<label class="w">&#1502;&#1492; &#1499;&#1500;&#1493;&#1500;<textarea id="q_inc"></textarea></label>
+<label class="w">&#1492;&#1506;&#1512;&#1493;&#1514;<textarea id="q_note"></textarea></label>
+</div>
+<div class="acts"><a class="btn" id="qwa" href="#" target="_blank" rel="noopener">&#1513;&#1500;&#1497;&#1495;&#1492; &#1489;&#1493;&#1493;&#1488;&#1496;&#1505;&#1488;&#1508;</a><button class="btn sec" id="qprint" type="button">&#1492;&#1491;&#1508;&#1505;&#1492; / PDF</button></div>
+</div>
+<article class="sheet" id="qsheet">
+<div class="hd"><b>&#1492;&#1510;&#1506;&#1514; &#1502;&#1495;&#1497;&#1512;</b><span id="qo_date"></span></div>
+<div class="bd">
+<div class="row2"><span>&#1500;&#1499;&#1489;&#1493;&#1491;</span><span id="qo_name"></span></div>
+<div class="row2"><span>&#1497;&#1506;&#1491;</span><span id="qo_dest"></span></div>
+<div class="row2"><span>&#1514;&#1488;&#1512;&#1497;&#1499;&#1497;&#1501;</span><span id="qo_dates"></span></div>
+<div class="row2"><span>&#1502;&#1500;&#1493;&#1503;</span><span id="qo_hotel"></span></div>
+<div class="row2"><span>&#1504;&#1493;&#1505;&#1506;&#1497;&#1501;</span><span id="qo_pax"></span></div>
+<div class="row2"><span>&#1502;&#1495;&#1497;&#1512; &#1500;&#1504;&#1493;&#1505;&#1506;</span><span id="qo_pr"></span></div>
+<div class="tot"><span>&#1505;&#1492;&#1524;&#1499; &#1500;&#1514;&#1513;&#1500;&#1493;&#1501;</span><b id="qo_tot"></b></div>
+<h3>&#1502;&#1492; &#1499;&#1500;&#1493;&#1500;</h3><ul id="qo_inc"></ul>
+<div id="qo_nb"><h3>&#1492;&#1506;&#1512;&#1493;&#1514;</h3><p id="qo_note"></p></div>
+<p id="qo_valid" style="margin-top:12px;color:#5d6a85"></p>
+</div>
+<div style="padding:10px 20px;background:#f4f6fa;color:#5d6a85;font-size:13px">waypointflit.com &middot; WaypointFlit</div>
+</article>
+</div>
+</div></div>
+
+<div class="modal" id="mm"><div class="box" style="max-width:520px">
+<div class="mtop"><span id="mmt">&#1492;&#1493;&#1491;&#1506;&#1492;</span><button class="btn sec" id="mmclose" type="button">&#1505;&#1490;&#1497;&#1512;&#1492;</button></div>
+<textarea class="mmtxt" id="mmtxt"></textarea>
+<div class="acts"><a class="btn" id="mmwa" href="#" target="_blank" rel="noopener">&#1513;&#1500;&#1497;&#1495;&#1492; &#1489;&#1493;&#1493;&#1488;&#1496;&#1505;&#1488;&#1508;</a><button class="btn sec" id="mmcopy" type="button">&#1492;&#1506;&#1514;&#1511;&#1492;</button></div>
+</div></div>
+
 <script type="module">
-import { requireUser, logout } from "./auth-guard.js";
+import { requireUser, db, logout } from "./auth-guard.js";
+import { TPL } from "./templates.js";
+import { SEED } from "./seed.js";
+import { collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, getDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const S = ["\u05d7\u05d3\u05e9","\u05d1\u05d8\u05d9\u05e4\u05d5\u05dc","\u05d4\u05e6\u05e2\u05d4 \u05e0\u05e9\u05dc\u05d7\u05d4","\u05e9\u05d5\u05dc\u05dd","\u05dc\u05d0 \u05e8\u05dc\u05d5\u05d5\u05e0\u05d8\u05d9","\u05dc\u05d0 \u05e2\u05e0\u05d4"];
+const wa = p => { let d = String(p||"").replace(/\D/g,""); if (d.startsWith("0")) d = "972"+d.slice(1); return "https://wa.me/"+d; };
+const money = n => "\u20aa"+Math.round(n||0).toLocaleString("he-IL");
+const dtl = v => v ? new Date(v+"T12:00:00").toLocaleDateString("he-IL") : "";
+const todayS = () => { const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+const err = m => { $("msg").style.color=""; $("msg").textContent = m || "\u05d4\u05e4\u05e2\u05d5\u05dc\u05d4 \u05e0\u05db\u05e9\u05dc\u05d4"; setTimeout(()=>{$("msg").textContent=""},4000); };
+
 const me = await requireUser();
-document.getElementById("app").innerHTML = `
-  <div>
-    <h1>✈️ WaypointFlit CRM</h1>
-    <p>שלב 1 הושלם: התחברת בתור <b>${me.name}</b> (${me.role === "admin" ? "מנהל" : me.role === "staff" ? "צוות" : "צפייה"}).</p>
-    <p>מסך הלידים המלא נבנה בשלב הבא.</p>
-    ${me.role === "admin" ? '<p><a href="admin.html">מסך ניהול משתמשים →</a></p>' : ""}
-    <p><a href="#" id="out">התנתקות</a></p>
-  </div>`;
-document.getElementById("out").addEventListener("click", e => { e.preventDefault(); logout(); location.href = "login.html"; });
+$("who").innerHTML = esc(me.name||me.email) + " &middot; " + (me.role==="admin"?"\u05de\u05e0\u05d4\u05dc":me.role==="staff"?"\u05e6\u05d5\u05d5\u05ea":"\u05e6\u05e4\u05d9\u05d9\u05d4 \u05d1\u05dc\u05d1\u05d3") +
+  (me.role==="admin" ? ' &middot; <a href="admin.html">\u05e0\u05d9\u05d4\u05d5\u05dc \u05de\u05e9\u05ea\u05de\u05e9\u05d9\u05dd</a>' : "") +
+  ' &middot; <a href="#" id="out">\u05d4\u05ea\u05e0\u05ea\u05e7\u05d5\u05ea</a>';
+$("out").addEventListener("click", e => { e.preventDefault(); logout(); location.href="login.html"; });
+const isAdmin = me.role === "admin";
+const canWrite = me.role === "admin" || me.role === "staff";
+if (!canWrite) $("f").classList.add("hide");
+if (!isAdmin) $("adminTools").classList.add("hide");
+document.querySelector('form#f button').disabled = !canWrite;
+
+let leads = [], f = -1;
+const col = collection(db, "leads");
+
+function due(l) {
+  if (l.status === 3 || l.status === 4) return "";
+  if (l.fu) { const t = todayS(); return l.fu < t ? "\u05de\u05e2\u05e7\u05d1 \u05d1\u05d0\u05d9\u05d7\u05d5\u05e8" : l.fu === t ? "\u05de\u05e2\u05e7\u05d1 \u05d4\u05d9\u05d5\u05dd" : ""; }
+  const d = Math.floor((Date.now() - (l.created||Date.now())) / 864e5);
+  return (l.status === 0 || l.status === 5) && d >= 3 ? "\u05de\u05de\u05ea\u05d9\u05e0\u05d4 "+d+" \u05d9\u05de\u05d9\u05dd" : "";
+}
+
+const QL = l => l.qlog && l.qlog.length ? '<div class="ql"><b>\u05d4\u05e6\u05e2\u05d5\u05ea \u05e9\u05e0\u05e9\u05dc\u05d7\u05d5</b>' + l.qlog.map((q,i)=>"<div><span>"+new Date(q.t).toLocaleDateString("he-IL")+" &middot; "+esc(q.dest)+" &middot; "+money(q.total)+"</span>"+(canWrite?'<button type="button" data-act="dlog" data-k="qlog" data-i="'+i+'">\u2715</button>':"")+"</div>").reverse().join("") + "</div>" : "";
+const ML = l => l.mlog && l.mlog.length ? '<div class="ql"><b>\u05d4\u05d5\u05d3\u05e2\u05d5\u05ea \u05e9\u05e0\u05e9\u05dc\u05d7\u05d5</b>' + l.mlog.slice(-5).map((m,i)=>"<div><span>"+new Date(m.t).toLocaleDateString("he-IL")+" &middot; "+esc(m.name)+"</span>"+(canWrite?'<button type="button" data-act="dlog" data-k="mlog" data-i="'+i+'">\u2715</button>':"")+"</div>").reverse().join("") + "</div>" : "";
+
+function render() {
+  const qv = $("q").value.trim().toLowerCase();
+  $("chips").innerHTML = '<button data-f="-1" class="'+(f===-1?"on":"")+'">\u05d4\u05db\u05d5\u05dc '+leads.length+'</button>' +
+    '<button data-f="-2" class="'+(f===-2?"on":"")+'">\u05dc\u05d8\u05d9\u05e4\u05d5\u05dc '+leads.filter(due).length+'</button>' +
+    '<button data-f="-3" class="'+(f===-3?"on":"")+'">\u05e9\u05dc\u05d9 '+leads.filter(l=>l.owner===me.uid).length+'</button>' +
+    S.map((s,i)=>'<button data-f="'+i+'" class="'+(f===i?"on":"")+'">'+s+" "+leads.filter(l=>l.status===i).length+"</button>").join("");
+  const rows = leads.filter(l => (f===-1 || (f===-2 ? !!due(l) : f===-3 ? l.owner===me.uid : l.status===f)) &&
+    (!qv || [l.name,l.phone,l.interest,l.note,l.src].join(" ").toLowerCase().includes(qv)));
+  $("list").innerHTML = rows.length ? rows.map(l =>
+    '<article class="lead" data-id="'+esc(l.id)+'"><div class="top"><strong>'+esc(l.name)+(due(l)?'<span class="flag">'+due(l)+"</span>":"")+'</strong>'+
+    '<select class="status" data-act="st" '+(canWrite?"":"disabled")+'>'+S.map((s,i)=>'<option value="'+i+'"'+(l.status===i?" selected":"")+">"+s+"</option>").join("")+'</select></div>'+
+    '<div class="meta"><span>'+esc(l.phone)+"</span><span>"+esc(l.interest)+"</span>"+(l.pax?"<span>"+esc(l.pax)+" \u05e0\u05d5\u05e1\u05e2\u05d9\u05dd</span>":"")+(l.src?"<span>"+esc(l.src)+"</span>":"")+(l.owner?'<span data-owner="'+esc(l.owner)+'">'+(l.ownerName?esc(l.ownerName):"\u05de\u05e9\u05d5\u05d9\u05da")+"</span>":"")+'</div>'+
+    (l.note?'<p class="note">'+esc(l.note)+"</p>":"")+
+    (l.offer?'<div class="off"><span>'+[l.offer.price?money(l.offer.price):"",l.offer.dates&&l.offer.dates!=="\u05d9\u05e2\u05d5\u05d3\u05db\u05df"?l.offer.dates:"",l.offer.hotel,l.offer.pax?l.offer.pax+" \u05e0\u05d5\u05e1\u05e2\u05d9\u05dd":""].filter(Boolean).map(esc).join(" &middot; ")+"</span>"+(canWrite?'<button type="button" data-act="clroff">\u2715</button>':"")+"</div>":"")+
+    QL(l)+ML(l)+
+    '<div class="acts">'+
+    (canWrite?'<label class="fu">\u05de\u05e2\u05e7\u05d1 <input type="date" data-act="fu" value="'+esc(l.fu||"")+'"></label>':"")+
+    (me.uid?'<button class="link" data-act="own" type="button">'+(l.owner===me.uid?"\u05e9\u05d7\u05e8\u05d5\u05e8":"\u05e7\u05d7 \u05d0\u05dc\u05d9")+"</button>":"")+
+    (l.phone?'<select class="tpl" data-act="tpl"><option value="">\u05d4\u05d5\u05d3\u05e2\u05d4 \u05de\u05d5\u05db\u05e0\u05d4</option>'+TPL.map((t,i)=>'<optgroup label="'+esc(t[0])+'">'+t[1].map((v,j)=>'<option value="'+i+"-"+j+'">'+esc(v[0])+"</option>").join("")+"</optgroup>").join("")+'</select> <a class="link" href="'+wa(l.phone)+'" target="_blank" rel="noopener">\u05d5\u05d5\u05d0\u05d8\u05e1\u05d0\u05e4</a>':"")+
+    (canWrite?'<button class="link" data-act="quote" type="button">\u05d4\u05e6\u05e2\u05ea \u05de\u05d7\u05d9\u05e8</button>':"")+
+    (isAdmin?'<button class="danger" data-act="del" type="button">\u05de\u05d7\u05d9\u05e7\u05d4</button>':"")+
+    "</div></article>"
+  ).join("") : '<p class="empty">\u05d0\u05d9\u05df \u05e4\u05e0\u05d9\u05d5\u05ea \u05dc\u05d4\u05e6\u05d2\u05d4.</p>';
+  fillOwnerNames();
+}
+
+const nameCache = {};
+async function fillOwnerNames() {
+  const els = [...document.querySelectorAll("[data-owner]")];
+  for (const el of els) {
+    const uid = el.dataset.owner;
+    if (nameCache[uid]) { el.textContent = nameCache[uid]; continue; }
+    try {
+      const snap = await getDoc(doc(db, "users", uid));
+      nameCache[uid] = snap.exists() ? (snap.data().name || snap.data().email || "\u05de\u05e9\u05d5\u05d9\u05da") : "\u05de\u05e9\u05d5\u05d9\u05da";
+      el.textContent = nameCache[uid];
+    } catch (e) { el.textContent = "\u05de\u05e9\u05d5\u05d9\u05da"; }
+  }
+}
+
+onSnapshot(query(col, orderBy("created","desc")), snap => {
+  leads = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  render();
+}, e => err());
+
+$("f").addEventListener("submit", async e => {
+  e.preventDefault();
+  const name = $("name").value.trim(), phone = $("phone").value.trim();
+  if (!name || !phone) return;
+  try {
+    await addDoc(col, { name, phone, interest: $("interest").value.trim(), pax: +$("pax").value||0, note: $("note").value.trim(), status: 0, created: Date.now() });
+    $("name").value=""; $("phone").value=""; $("note").value="";
+  } catch (e) { err(); }
+});
+
+$("q").addEventListener("input", render);
+$("chips").addEventListener("click", e => { const b = e.target.closest("button"); if (b) { f = +b.dataset.f; render(); } });
+
+$("list").addEventListener("change", async e => {
+  const el = e.target, id = el.closest(".lead").dataset.id;
+  if (el.dataset.act === "st") { try { await updateDoc(doc(db,"leads",id), { status: +el.value }); } catch (x) { err(); } }
+  if (el.dataset.act === "fu") { try { await updateDoc(doc(db,"leads",id), { fu: el.value }); } catch (x) { err(); } }
+  if (el.dataset.act === "tpl") {
+    const l = leads.find(x=>x.id===id), ij = el.value.split("-").map(Number); el.value = "";
+    const T = TPL[ij[0]] && TPL[ij[0]][1][ij[1]]; if (!T) return;
+    const q = l.quote||{}, o = l.offer||{};
+    const V = { n:(l.name||"").split(" ")[0], i:l.interest||"\u05d7\u05d5\u05e4\u05e9\u05d4", dest:q.dest||"\u05d5\u05dc\u05d9\u05e0\u05d2\u05e8\u05d3, \u05d1\u05d5\u05dc\u05d2\u05e8\u05d9\u05d4", dates:o.dates&&o.dates!=="\u05d9\u05e2\u05d5\u05d3\u05db\u05df"?o.dates:"", total:o.price?money(o.price):"" };
+    const msg = T[1].split("\n").filter(ln=>(ln.match(/\{(\w+)\}/g)||[]).every(k=>V[k.slice(1,-1)])).join("\n").replace(/\{(\w+)\}/g,(m,k)=>V[k]);
+    openMsg(l, TPL[ij[0]][0]+" &middot; "+T[0], msg);
+  }
+});
+
+$("list").addEventListener("click", async e => {
+  const el = e.target, lead = el.closest(".lead"); if (!lead) return;
+  const id = lead.dataset.id, l = leads.find(x=>x.id===id);
+  const act = el.dataset.act;
+  if (act === "own" && me.uid) { try { await updateDoc(doc(db,"leads",id), { owner: l.owner===me.uid?null:me.uid, ownerName: l.owner===me.uid?null:(me.name||me.email) }); } catch (x) { err(); } }
+  if (act === "quote") qopen(id);
+  if (act === "del") { if (!el.dataset.armed) { el.dataset.armed="1"; el.textContent="\u05dc\u05de\u05d7\u05d5\u05e7?"; return; } try { await deleteDoc(doc(db,"leads",id)); } catch (x) { err(); } }
+  if (act === "clroff") { if (!el.dataset.armed) { el.dataset.armed="1"; el.textContent="\u05dc\u05de\u05d7\u05d5\u05e7?"; return; } try { await updateDoc(doc(db,"leads",id), { offer: null, quote: null }); } catch (x) { err(); } }
+  if (act === "dlog") {
+    if (!el.dataset.armed) { el.dataset.armed="1"; el.textContent="\u05dc\u05de\u05d7\u05d5\u05e7?"; return; }
+    const k = el.dataset.k, arr = (l[k]||[]).slice(); arr.splice(+el.dataset.i,1);
+    const p = { [k]: arr }; if (k==="qlog") p.sentAt = arr.length ? arr[arr.length-1].t : null;
+    try { await updateDoc(doc(db,"leads",id), p); } catch (x) { err(); }
+  }
+});
+
+const QF = ["name","phone","dest","d1","d2","ad","ch","pr","vd","hotel","inc","note"];
+let qid = null, qt = null, qmsg = "";
+function qrender(save) {
+  const v = {}; QF.forEach(k => v[k] = $("q_"+k).value.trim());
+  const ad = +v.ad||0, ch = +v.ch||0, n = ad+ch, pr = +v.pr||0, tot = n*pr;
+  const dates = v.d1 && v.d2 ? dtl(v.d1)+" \u2013 "+dtl(v.d2) : (dtl(v.d1)||dtl(v.d2)||"\u05d9\u05e2\u05d5\u05d3\u05db\u05df");
+  const pax = n ? n+" ("+ad+" \u05de\u05d1\u05d5\u05d2\u05e8\u05d9\u05dd"+(ch?", "+ch+" \u05d9\u05dc\u05d3\u05d9\u05dd":"")+")" : "-";
+  $("qo_date").textContent = new Date().toLocaleDateString("he-IL");
+  $("qo_name").textContent = v.name||"-"; $("qo_dest").textContent = v.dest||"-"; $("qo_dates").textContent = dates;
+  $("qo_hotel").textContent = v.hotel||"-"; $("qo_pax").textContent = pax; $("qo_pr").textContent = money(pr); $("qo_tot").textContent = money(tot);
+  const items = v.inc.split("\n").map(x=>x.trim()).filter(Boolean);
+  $("qo_inc").innerHTML = ""; items.forEach(t => { const li=document.createElement("li"); li.textContent=t; $("qo_inc").appendChild(li); });
+  $("qo_note").textContent = v.note; $("qo_nb").style.display = v.note?"":"none";
+  $("qo_valid").textContent = v.vd ? "\u05d4\u05d4\u05e6\u05e2\u05d4 \u05d1\u05ea\u05d5\u05e7\u05e3 \u05e2\u05d3 "+dtl(v.vd) : "";
+  const msg = "\u05e9\u05dc\u05d5\u05dd"+(v.name?" "+v.name:"")+",\n\u05d4\u05e6\u05e2\u05ea \u05de\u05d7\u05d9\u05e8 \u05de-WaypointFlit:\n\u05d9\u05e2\u05d3: "+(v.dest||"")+"\n\u05ea\u05d0\u05e8\u05d9\u05db\u05d9\u05dd: "+dates+"\n\u05e0\u05d5\u05e1\u05e2\u05d9\u05dd: "+pax+"\n\u05de\u05d7\u05d9\u05e8 \u05dc\u05e0\u05d5\u05e1\u05e2: "+money(pr)+"\n\u05e1\u05d4\u05f4\u05db: "+money(tot)+(items.length?"\n\u05db\u05d5\u05dc\u05dc: "+items.join(", "):"")+(v.vd?"\n\u05d4\u05d4\u05e6\u05e2\u05d4 \u05d1\u05ea\u05d5\u05e7\u05e3 \u05e2\u05d3 "+dtl(v.vd):"");
+  qmsg = msg;
+  $("qwa").href = "https://wa.me/"+(v.phone?wa(v.phone).slice(14):"")+"?text="+encodeURIComponent(msg);
+  if (save && qid) { clearTimeout(qt); const id=qid; qt=setTimeout(()=>{ updateDoc(doc(db,"leads",id), { quote:v, offer:{price:tot,dates,hotel:v.hotel,pax:n} }).catch(()=>{}); }, 800); }
+}
+function qopen(id) {
+  const l = leads.find(x=>x.id===id); if (!l) return;
+  qid = id; const q = l.quote||{}, def = { name:l.name, phone:l.phone, dest:"\u05d5\u05dc\u05d9\u05e0\u05d2\u05e8\u05d3, \u05d1\u05d5\u05dc\u05d2\u05e8\u05d9\u05d4", ad:l.pax||2, ch:0, pr:3500, inc:"\u05d8\u05d9\u05e1\u05d5\u05ea \u05d4\u05dc\u05d5\u05da \u05d5\u05d7\u05d6\u05d5\u05e8\n\u05dc\u05d9\u05e0\u05d4 \u05d1\u05de\u05dc\u05d5\u05df" };
+  QF.forEach(k => $("q_"+k).value = q[k]!=null ? q[k] : (def[k]!=null?def[k]:""));
+  $("qm").classList.add("on"); qrender(false);
+}
+QF.forEach(k => $("q_"+k).addEventListener("input", ()=>qrender(true)));
+$("qclose").addEventListener("click", ()=>{ $("qm").classList.remove("on"); qid=null; });
+$("qprint").addEventListener("click", ()=>{ try { window.print(); } catch(e){} });
+$("qwa").addEventListener("click", async () => {
+  if (!qid) return;
+  const l = leads.find(x=>x.id===qid); if (!l) return;
+  const v = {}; QF.forEach(k => v[k] = $("q_"+k).value.trim());
+  const n = (+v.ad||0)+(+v.ch||0), pr = +v.pr||0, total = n*pr;
+  const dates = v.d1 && v.d2 ? dtl(v.d1)+" \u2013 "+dtl(v.d2) : (dtl(v.d1)||dtl(v.d2)||"\u05d9\u05e2\u05d5\u05d3\u05db\u05df");
+  const p = { quote:v, offer:{price:total,dates,hotel:v.hotel,pax:n}, sentAt:Date.now(), qlog:(l.qlog||[]).concat([{t:Date.now(),dest:v.dest,total,by:me.uid}]) };
+  if (l.status !== 3) p.status = 2;
+  try { await updateDoc(doc(db,"leads",qid), p); } catch (x) {}
+});
+
+let mlead = null, mname = "";
+function upMM() { const l = leads.find(x=>x.id===mlead); $("mmwa").href = (l&&l.phone?wa(l.phone):"https://wa.me/")+"?text="+encodeURIComponent($("mmtxt").value); }
+function openMsg(l, name, msg) { mlead=l.id; mname=name; $("mmt").textContent=name; $("mmtxt").value=msg; upMM(); $("mm").classList.add("on"); }
+$("mmtxt").addEventListener("input", upMM);
+$("mmwa").addEventListener("click", async () => { const l = leads.find(x=>x.id===mlead); if (l) { try { await updateDoc(doc(db,"leads",mlead), { mlog:(l.mlog||[]).concat([{t:Date.now(),name:mname,by:me.uid}]).slice(-30) }); } catch(x){} } });
+$("mmclose").addEventListener("click", ()=>$("mm").classList.remove("on"));
+$("mmcopy").addEventListener("click", async e => {
+  const b = e.currentTarget, t = $("mmtxt");
+  try { await navigator.clipboard.writeText(t.value); } catch (x) { t.select(); try { document.execCommand("copy"); } catch(y){} }
+  b.textContent = "\u05d4\u05d5\u05e2\u05ea\u05e7 \u2713"; setTimeout(()=>{ b.textContent = "\u05d4\u05e2\u05ea\u05e7\u05d4"; }, 1500);
+});
+
+function download(filename, text, mime) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type: mime }));
+  a.download = filename; document.body.appendChild(a); a.click(); a.remove();
+}
+function rowsToLead(o) {
+  return { name:o.name, phone:o.phone, interest:o.interest, pax:+o.pax||0, note:o.note||"", status:Math.max(0,S.indexOf(o.status)), src:o.source||o.src||"", row:+o.row||0, created: typeof o.created==="string" ? (Date.parse(o.created)||Date.now()) : (o.created||Date.now()) };
+}
+async function bulkImport(list) {
+  const existing = leads.slice();
+  const dup = o => existing.some(x => (o.row && x.row===o.row) || (o.phone && x.phone===o.phone));
+  let batch = writeBatch(db), n = 0, count = 0;
+  for (const o of list) {
+    if (!o.name || dup(o)) continue;
+    const l = rowsToLead(o);
+    batch.set(doc(col), l); existing.push(l); count++; n++;
+    if (n === 400) { await batch.commit(); batch = writeBatch(db); n = 0; }
+  }
+  if (n) await batch.commit();
+  $("msg").style.color = "#1f6f6b"; $("msg").textContent = count ? "\u05e0\u05d5\u05e1\u05e4\u05d5 "+count+" \u05e4\u05e0\u05d9\u05d5\u05ea" : "\u05d0\u05d9\u05df \u05e4\u05e0\u05d9\u05d5\u05ea \u05d7\u05d3\u05e9\u05d5\u05ea";
+  setTimeout(()=>{ $("msg").textContent=""; $("msg").style.color=""; }, 4000);
+}
+if (isAdmin) {
+  $("seedBtn").addEventListener("click", async e => { e.target.disabled=true; await bulkImport(SEED); e.target.disabled=false; });
+  $("csvBtn").addEventListener("click", async e => {
+    const t = $("csvBox").value.trim(); if (!t) return;
+    const rows = t.replace(/^\uFEFF/,"").split(/\r?\n/).filter(Boolean);
+    const h = rows.shift().split(",").map(x=>x.trim());
+    const list = rows.map(r => { const c = r.split(","); const o = {}; h.forEach((k,i)=>o[k]=(c[i]||"").trim()); return o; });
+    e.target.disabled = true; await bulkImport(list); e.target.disabled = false; $("csvBox").value = "";
+  });
+  $("expBtn").addEventListener("click", () => {
+    const H = ["name","phone","interest","pax","status","source","created","fu","note","offer_price","offer_dates","offer_hotel"];
+    const day = t => t ? new Date(t).toISOString().slice(0,10) : "";
+    const cell = v => '"'+String(v??"").replace(/"/g,'""')+'"';
+    const rows = leads.map(l => { const o=l.offer||{}; return [l.name,l.phone,l.interest,l.pax||"",S[l.status]||"",l.src||"",day(l.created),l.fu||"",l.note||"",o.price||"",o.dates||"",o.hotel||""]; });
+    download("crm-export-"+todayS()+".csv", "\uFEFF"+[H].concat(rows).map(r=>r.map(cell).join(",")).join("\r\n"), "text/csv;charset=utf-8");
+  });
+  $("bkpBtn").addEventListener("click", () => {
+    download("crm-backup-"+todayS()+".json", JSON.stringify(leads.map(l=>{ const c=Object.assign({},l); delete c.id; return c; }), null, 1), "application/json");
+  });
+}
+
+render();
 </script>
 </body>
 </html>
