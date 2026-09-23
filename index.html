@@ -160,6 +160,25 @@ summary{cursor:pointer;color:var(--pri);font-weight:600;font-size:14px}
 <div class="acts"><a class="btn" id="mmwa" href="#" target="_blank" rel="noopener">&#1513;&#1500;&#1497;&#1495;&#1492; &#1489;&#1493;&#1493;&#1488;&#1496;&#1505;&#1488;&#1508;</a><button class="btn sec" id="mmcopy" type="button">&#1492;&#1506;&#1514;&#1511;&#1492;</button></div>
 </div></div>
 
+<div class="modal" id="ivm"><div class="box">
+<div class="mtop"><span>&#1513;&#1488;&#1500;&#1493;&#1503; &#1500;&#1511;&#1493;&#1495; &#1499;&#1488;&#1503;</span><button class="btn sec" id="ivclose" type="button">&#1505;&#1490;&#1497;&#1512;&#1492;</button></div>
+<div class="grid">
+<label class="w">&#1497;&#1506;&#1491;<input id="iv_dest"></label>
+<label>&#1514;&#1488;&#1512;&#1497;&#1498; &#1497;&#1510;&#1497;&#1488;&#1492;<input id="iv_d1" type="date"></label>
+<label>&#1514;&#1488;&#1512;&#1497;&#1498; &#1495;&#1494;&#1512;&#1492;<input id="iv_d2" type="date"></label>
+<label>&#1502;&#1505;&#1508;&#1512; &#1504;&#1493;&#1505;&#1506;&#1497;&#1501;<input id="iv_pax" type="number" min="1"></label>
+<label>&#1490;&#1497;&#1500;&#1488;&#1497; &#1492;&#1504;&#1493;&#1505;&#1506;&#1497;&#1501;<input id="iv_ages" placeholder="&#1500;&#1491;&#1521;&#1502;&#1513;&#1500; 2 &#1502;&#1489;&#1493;&#1490;&#1512;&#1497;&#1501;, &#1497;&#1500;&#1491; &#1489;&#1503; 5"></label>
+<label class="w">&#1499;&#1489;&#1493;&#1491;&#1492;
+<select id="iv_lug"><option value="">&#1500;&#1488; &#1510;&#1493;&#1497;&#1503;</option><option>&#1502;&#1494;&#1493;&#1493;&#1491;&#1492;</option><option>&#1496;&#1512;&#1493;&#1500;&#1497;</option><option>&#1502;&#1494;&#1493;&#1493;&#1491;&#1492; &#1493;&#1496;&#1512;&#1493;&#1500;&#1497;</option></select></label>
+<label>&#1514;&#1511;&#1510;&#1497;&#1489; (&#8362;)<input id="iv_budget" type="number" min="0"></label>
+<label>&#1489;&#1505;&#1497;&#1505; &#1488;&#1497;&#1512;&#1493;&#1495;
+<select id="iv_board"><option value="">&#1500;&#1488; &#1510;&#1493;&#1497;&#1503;</option><option>&#1500;&#1500;&#1488; &#1488;&#1512;&#1493;&#1495;&#1493;&#1514;</option><option>&#1488;&#1512;&#1493;&#1495;&#1514; &#1489;&#1493;&#1511;&#1512;</option><option>&#1495;&#1510;&#1497; &#1508;&#1504;&#1505;&#1497;&#1493;&#1503;</option><option>&#1508;&#1504;&#1505;&#1497;&#1493;&#1503; &#1502;&#1500;&#1488;</option></select></label>
+<label class="w" style="flex-direction:row;align-items:center;gap:8px"><input id="iv_car" type="checkbox" style="width:auto"> &#1492;&#1513;&#1499;&#1512;&#1514; &#1512;&#1499;&#1489;</label>
+<label class="w" style="flex-direction:row;align-items:center;gap:8px"><input id="iv_ins" type="checkbox" style="width:auto"> &#1489;&#1497;&#1496;&#1493;&#1495; &#1504;&#1505;&#1497;&#1506;&#1493;&#1514;</label>
+<label class="w">&#1491;&#1512;&#1497;&#1513;&#1493;&#1514; &#1504;&#1493;&#1505;&#1508;&#1493;&#1514;<textarea id="iv_more"></textarea></label>
+</div>
+</div></div>
+
 <script type="module">
 import { requireUser, db, logout } from "./auth-guard.js";
 import { startTracking } from "./session-tracker.js";
@@ -200,6 +219,12 @@ function due(l) {
 
 const QL = l => l.qlog && l.qlog.length ? '<div class="ql"><b>\u05d4\u05e6\u05e2\u05d5\u05ea \u05e9\u05e0\u05e9\u05dc\u05d7\u05d5</b>' + l.qlog.map((q,i)=>"<div><span>"+new Date(q.t).toLocaleDateString("he-IL")+" &middot; "+esc(q.dest)+" &middot; "+money(q.total)+"</span>"+(canWrite?'<button type="button" data-act="dlog" data-k="qlog" data-i="'+i+'">\u2715</button>':"")+"</div>").reverse().join("") + "</div>" : "";
 const ML = l => l.mlog && l.mlog.length ? '<div class="ql"><b>\u05d4\u05d5\u05d3\u05e2\u05d5\u05ea \u05e9\u05e0\u05e9\u05dc\u05d7\u05d5</b>' + l.mlog.slice(-5).map((m,i)=>"<div><span>"+new Date(m.t).toLocaleDateString("he-IL")+" &middot; "+esc(m.name)+"</span>"+(canWrite?'<button type="button" data-act="dlog" data-k="mlog" data-i="'+i+'">\u2715</button>':"")+"</div>").reverse().join("") + "</div>" : "";
+const BOARD_SHORT = { "\u05dc\u05dc\u05d0 \u05d0\u05e8\u05d5\u05d7\u05d5\u05ea": "\u05dc\u05dc\u05d0 \u05d0\u05e8\u05d5\u05d7\u05d5\u05ea", "\u05d0\u05e8\u05d5\u05d7\u05ea \u05d1\u05d5\u05e7\u05e8": "\u05d0.\u05d1\u05d5\u05e7\u05e8", "\u05d7\u05e6\u05d9 \u05e4\u05e0\u05e1\u05d9\u05d5\u05df": "\u05d7\u05e6\u05d9 \u05e4\u05e0\u05e1\u05d9\u05d5\u05df", "\u05e4\u05e0\u05e1\u05d9\u05d5\u05df \u05de\u05dc\u05d0": "\u05e4\u05e0\u05e1\u05d9\u05d5\u05df \u05de\u05dc\u05d0" };
+const IV = l => { const v = l.intake; if (!v) return "";
+  const bits = [v.dest, (v.d1&&v.d2)?(dtl(v.d1)+" \u2013 "+dtl(v.d2)):(dtl(v.d1)||dtl(v.d2)), v.pax?v.pax+" \u05e0\u05d5\u05e1\u05e2\u05d9\u05dd":"", v.ages, v.lug, v.budget?money(v.budget):"", v.board, v.car?"\u05d4\u05e9\u05db\u05e8\u05ea \u05e8\u05db\u05d1":"", v.ins?"\u05d1\u05d9\u05d8\u05d5\u05d7 \u05e0\u05e1\u05d9\u05e2\u05d5\u05ea":""].filter(Boolean);
+  if (!bits.length && !v.more) return "";
+  return '<div class="off" style="display:block"><b style="font-size:13px">\u05e9\u05d0\u05dc\u05d5\u05df \u05dc\u05e7\u05d5\u05d7</b><div>'+bits.map(esc).join(" &middot; ")+"</div>"+(v.more?'<div style="margin-top:4px;white-space:pre-line">'+esc(v.more)+"</div>":"")+"</div>";
+};
 
 function render() {
   const qv = $("q").value.trim().toLowerCase();
@@ -215,11 +240,13 @@ function render() {
     '<div class="meta"><span>'+esc(l.phone)+"</span><span>"+esc(l.interest)+"</span>"+(l.pax?"<span>"+esc(l.pax)+" \u05e0\u05d5\u05e1\u05e2\u05d9\u05dd</span>":"")+(l.src?"<span>"+esc(l.src)+"</span>":"")+(l.owner?'<span data-owner="'+esc(l.owner)+'">'+(l.ownerName?esc(l.ownerName):"\u05de\u05e9\u05d5\u05d9\u05da")+"</span>":"")+'</div>'+
     (l.note?'<p class="note">'+esc(l.note)+"</p>":"")+
     (l.offer?'<div class="off"><span>'+[l.offer.price?money(l.offer.price):"",l.offer.dates&&l.offer.dates!=="\u05d9\u05e2\u05d5\u05d3\u05db\u05df"?l.offer.dates:"",l.offer.hotel,l.offer.pax?l.offer.pax+" \u05e0\u05d5\u05e1\u05e2\u05d9\u05dd":""].filter(Boolean).map(esc).join(" &middot; ")+"</span>"+(canWrite?'<button type="button" data-act="clroff">\u2715</button>':"")+"</div>":"")+
+    IV(l)+
     QL(l)+ML(l)+
     '<div class="acts">'+
     (canWrite?'<label class="fu">\u05de\u05e2\u05e7\u05d1 <input type="date" data-act="fu" value="'+esc(l.fu||"")+'"></label>':"")+
     (me.uid?'<button class="link" data-act="own" type="button">'+(l.owner===me.uid?"\u05e9\u05d7\u05e8\u05d5\u05e8":"\u05e7\u05d7 \u05d0\u05dc\u05d9")+"</button>":"")+
     (l.phone?'<select class="tpl" data-act="tpl"><option value="">\u05d4\u05d5\u05d3\u05e2\u05d4 \u05de\u05d5\u05db\u05e0\u05d4</option>'+TPL.map((t,i)=>'<optgroup label="'+esc(t[0])+'">'+t[1].map((v,j)=>'<option value="'+i+"-"+j+'">'+esc(v[0])+"</option>").join("")+"</optgroup>").join("")+'</select> <a class="link" href="'+wa(l.phone)+'" target="_blank" rel="noopener">\u05d5\u05d5\u05d0\u05d8\u05e1\u05d0\u05e4</a>':"")+
+    (canWrite?'<button class="link" data-act="intake" type="button">\u05e9\u05d0\u05dc\u05d5\u05df \u05dc\u05e7\u05d5\u05d7</button>':"")+
     (canWrite?'<button class="link" data-act="quote" type="button">\u05d4\u05e6\u05e2\u05ea \u05de\u05d7\u05d9\u05e8</button>':"")+
     (isAdmin?'<button class="danger" data-act="del" type="button">\u05de\u05d7\u05d9\u05e7\u05d4</button>':"")+
     "</div></article>"
@@ -279,6 +306,7 @@ $("list").addEventListener("click", async e => {
   const act = el.dataset.act;
   if (act === "own" && me.uid) { try { await updateDoc(doc(db,"leads",id), { owner: l.owner===me.uid?null:me.uid, ownerName: l.owner===me.uid?null:(me.name||me.email) }); } catch (x) { err(); } }
   if (act === "quote") qopen(id);
+  if (act === "intake") ivopen(id);
   if (act === "del") { if (!el.dataset.armed) { el.dataset.armed="1"; el.textContent="\u05dc\u05de\u05d7\u05d5\u05e7?"; return; } try { await deleteDoc(doc(db,"leads",id)); } catch (x) { err(); } }
   if (act === "clroff") { if (!el.dataset.armed) { el.dataset.armed="1"; el.textContent="\u05dc\u05de\u05d7\u05d5\u05e7?"; return; } try { await updateDoc(doc(db,"leads",id), { offer: null, quote: null }); } catch (x) { err(); } }
   if (act === "dlog") {
@@ -315,6 +343,27 @@ function qopen(id) {
   $("qm").classList.add("on"); qrender(false);
 }
 QF.forEach(k => $("q_"+k).addEventListener("input", ()=>qrender(true)));
+
+const IVF = ["dest","d1","d2","pax","ages","lug","budget","board","car","ins","more"];
+let ivid = null, ivt = null;
+function ivopen(id) {
+  const l = leads.find(x=>x.id===id); if (!l) return;
+  ivid = id; const v = l.intake||{};
+  IVF.forEach(k => { const el = $("iv_"+k); if (el.type === "checkbox") el.checked = !!v[k]; else el.value = v[k]!=null?v[k]:""; });
+  $("ivm").classList.add("on");
+}
+function ivsave() {
+  if (!ivid) return;
+  clearTimeout(ivt); const id = ivid;
+  ivt = setTimeout(() => {
+    const v = {}; IVF.forEach(k => { const el = $("iv_"+k); v[k] = el.type === "checkbox" ? el.checked : el.value.trim(); });
+    if (v.pax) v.pax = +v.pax || null;
+    if (v.budget) v.budget = +v.budget || null;
+    updateDoc(doc(db,"leads",id), { intake: v }).catch(()=>{});
+  }, 700);
+}
+IVF.forEach(k => $("iv_"+k).addEventListener("input", ivsave));
+$("ivclose").addEventListener("click", ()=>{ ivid=null; $("ivm").classList.remove("on"); });
 $("qclose").addEventListener("click", ()=>{ $("qm").classList.remove("on"); qid=null; });
 $("qprint").addEventListener("click", ()=>{ try { window.print(); } catch(e){} });
 $("qwa").addEventListener("click", async () => {
