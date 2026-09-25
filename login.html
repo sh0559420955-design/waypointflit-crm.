@@ -80,6 +80,14 @@ $("signup").addEventListener("click", async () => {
     const cred = await createUserWithEmailAndPassword(auth, email, $("pass").value);
     const role = ADMIN_EMAILS.includes(email) ? "admin" : "pending";
     await setDoc(doc(db, "users", cred.user.uid), { email, name: email.split("@")[0], role, createdAt: serverTimestamp() });
+    if (role === "pending") {
+      // מודיע למנהל במייל שיש משתמשת חדשה שממתינה לאישור. אם הבקשה נכשלת
+      // (למשל בלי רשת), זה לא עוצר את ההרשמה - היא עדיין תופיע ב"ניהול משתמשים".
+      fetch("https://hook.eu1.make.com/lvocty6itei4srnxfzoanl1oswma2h5v", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: email.split("@")[0], email })
+      }).catch(() => {});
+    }
   } catch (e) { showErr(FRIENDLY[e.code] || "שגיאה בהרשמה"); }
 });
 
