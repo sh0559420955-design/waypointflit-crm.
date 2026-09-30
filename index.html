@@ -70,6 +70,16 @@ select.status{font-weight:600}
 details{margin-top:10px}
 summary{cursor:pointer;color:var(--pri);font-weight:600;font-size:14px}
 .hide{display:none!important}
+.acts .fub{background:#f07031;color:#fff;border:0;border-radius:8px;padding:5px 10px;font-weight:700;cursor:pointer}
+.xbox{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:10px}
+.xbox[open]{display:grid;gap:8px}
+.xbox p{font-size:13px;color:var(--mut);margin:0}
+.chk{flex-direction:row!important;align-items:center;gap:8px}.chk input{width:auto}
+.spout{font-size:14px;background:var(--bg);border-radius:8px;padding:8px 10px}.spout div{display:flex;justify-content:space-between;gap:8px;padding:2px 0}
+.qmsgl{margin-top:10px}#q_msg{min-height:200px;font-size:15px;line-height:1.5}
+.fms{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px}.fms b{display:block;margin-bottom:6px}
+.fms .chk input{width:70px}.fms textarea{min-height:130px}
+.stat{font-size:14px;color:var(--mut)}
 @media print{body>*:not(.modal){display:none!important}.modal{position:static;background:none;padding:0}.box{padding:0;background:none}.noprint{display:none!important}}
 </style>
 </head>
@@ -101,6 +111,7 @@ summary{cursor:pointer;color:var(--pri);font-weight:600;font-size:14px}
 <div class="acts">
 <button class="btn sec" id="seedBtn" type="button">&#1497;&#1489;&#1493;&#1488; &#1512;&#1488;&#1513;&#1493;&#1504;&#1497; (128 &#1508;&#1504;&#1497;&#1493;&#1514;)</button>
 <button class="btn sec" id="expBtn" type="button">&#1497;&#1497;&#1510;&#1493;&#1488; &#1500;-CSV</button>
+<button class="btn sec" id="fued" type="button">✏️ הודעות פולו אפ</button>
 <button class="btn sec" id="bkpBtn" type="button">&#1490;&#1497;&#1489;&#1493;&#1497; &#1502;&#1500;&#1488; (JSON)</button>
 </div>
 <details><summary>&#1497;&#1497;&#1489;&#1493;&#1488; &#1502;&#1511;&#1493;&#1489;&#1509; CSV &#1504;&#1493;&#1505;&#1507;</summary>
@@ -133,6 +144,25 @@ summary{cursor:pointer;color:var(--pri);font-weight:600;font-size:14px}
 <label class="w">&#1502;&#1492; &#1499;&#1500;&#1493;&#1500;<textarea id="q_inc"></textarea></label>
 <label class="w">&#1492;&#1506;&#1512;&#1493;&#1514;<textarea id="q_note"></textarea></label>
 </div>
+<details class="xbox" id="splitbox">
+<summary>💰 פירוט מחיר ללקוח (טיסות, מלון, העברות, כבודה)</summary>
+<p>מכניסים את העלות שלך לכל רכיב. הרווח מתחלק בין הטיסות למלון לפי היחס ביניהם, והסכום תמיד שווה בדיוק למחיר הכולל.</p>
+<div class="grid">
+<label>עלות טיסות (₪)<input id="sp_fl" type="number" min="0"></label><label>עלות מלון (₪)<input id="sp_ht" type="number" min="0"></label>
+<label>עלות העברות (₪)<input id="sp_tr" type="number" min="0"></label><label>עלות כבודה (₪)<input id="sp_lg" type="number" min="0"></label>
+</div>
+<label class="chk"><input type="checkbox" id="sp_all"> לחלק רווח גם על העברות וכבודה</label>
+<div class="spout" id="sp_out"></div>
+<button class="btn" id="sp_add" type="button">הוספה להודעת הוואטסאפ</button>
+</details>
+<details class="xbox" id="pastebox">
+<summary>📋 כבר שלחתי הצעה בוואטסאפ – הדבקה ועדכון</summary>
+<textarea id="ps_t" placeholder="הדביקו כאן את הודעת ההצעה ששלחתם ללקוח"></textarea>
+<label class="chk">נשלחה בתאריך <input type="date" id="ps_d" style="width:auto"></label>
+<button class="btn" id="ps_go" type="button">עדכון ב-CRM</button>
+<span class="stat" id="ps_st"></span>
+</details>
+<label class="qmsgl">הודעת וואטסאפ (אפשר לערוך)<textarea id="q_msg"></textarea></label>
 <div class="acts"><a class="btn" id="qwa" href="#" target="_blank" rel="noopener">&#1513;&#1500;&#1497;&#1495;&#1492; &#1489;&#1493;&#1493;&#1488;&#1496;&#1505;&#1488;&#1508;</a><button class="btn sec" id="qprint" type="button">&#1492;&#1491;&#1508;&#1505;&#1492; / PDF</button></div>
 </div>
 <article class="sheet" id="qsheet">
@@ -160,6 +190,13 @@ summary{cursor:pointer;color:var(--pri);font-weight:600;font-size:14px}
 <div class="acts"><a class="btn" id="mmwa" href="#" target="_blank" rel="noopener">&#1513;&#1500;&#1497;&#1495;&#1492; &#1489;&#1493;&#1493;&#1488;&#1496;&#1505;&#1488;&#1508;</a><button class="btn sec" id="mmcopy" type="button">&#1492;&#1506;&#1514;&#1511;&#1492;</button></div>
 </div></div>
 
+<div class="modal" id="fm"><div class="box" style="max-width:620px">
+<div class="mtop"><span>הודעות פולו אפ</span><button class="btn sec" id="fmclose" type="button">סגירה</button></div>
+<p class="stat" style="margin:0 0 10px">אפשר לכתוב <b>{שם}</b> במקום השם הפרטי של הלקוח ו-<b>{יעד}</b> במקום היעד מההצעה.</p>
+<div id="fmlist"></div>
+<div class="acts"><button class="btn" id="fmsave" type="button">שמירה</button><button class="btn sec" id="fmreset" type="button">חזרה לברירת המחדל</button><span class="stat" id="fmst"></span></div>
+</div></div>
+
 <div class="modal" id="ivm"><div class="box">
 <div class="mtop"><span>&#1513;&#1488;&#1500;&#1493;&#1503; &#1500;&#1511;&#1493;&#1495; &#1499;&#1488;&#1503;</span><button class="btn sec" id="ivclose" type="button">&#1505;&#1490;&#1497;&#1512;&#1492;</button></div>
 <div class="grid">
@@ -184,7 +221,7 @@ import { requireUser, db, logout } from "./auth-guard.js";
 import { startTracking } from "./session-tracker.js";
 import { TPL } from "./templates.js";
 import { SEED } from "./seed.js";
-import { collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, getDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
+import { collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, getDoc, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -210,9 +247,29 @@ document.querySelector('form#f button').disabled = !canWrite;
 let leads = [], f = -1;
 const col = collection(db, "leads");
 
+const FUS0 = [[2,"היי {שם} 😊\nרציתי לבדוק אם יצא לך לעבור על ההצעה ששלחתי ל{יעד}?\nאם יש שאלות או משהו שתרצה לשנות – אני כאן בשמחה 🙏\nWaypointFlit"],[3,"היי {שם} 👋\nרק עדכון קטן – המחירים והמקומות בטיסות ובמלון משתנים כל הזמן, וההצעה ששלחתי ל{יעד} בתוקף לזמינות הנוכחית בלבד.\nאם זה מתאים לך, כדאי לסגור בקרוב כדי לשמור על המחיר 💰\nלהתקדם? 😊\nWaypointFlit"],[5,"היי {שם} 😊\nלא שמעתי ממך לגבי ההצעה ל{יעד} – אם משהו לא הסתדר (מחיר, תאריכים, מלון), אשמח להתאים לך הצעה אחרת.\nרק תגיד מה חשוב לך ואני אדאג לזה ✈️\nWaypointFlit"]];
+let FUS = FUS0.map(x => x.slice());
+function setFUS(a) { FUS = (Array.isArray(a) && a.length === 3 && a.every(x => x && x.t)) ? a.map(x => [Math.max(1, +x.d || 1), String(x.t)]) : FUS0.map(x => x.slice()); render(); }
+function fuInfo(l) {
+  if (l.status !== 2) return null;
+  const base = l.sentAt || l.stAt || l.created || Date.now();
+  const fl = (l.mlog || []).filter(m => m.t >= base && String(m.name).startsWith("פולו אפ"));
+  if (fl.length >= FUS.length) return null;
+  const last = fl.length ? Math.max(...fl.map(m => m.t)) : base;
+  const d = Math.floor((Date.now() - last) / 864e5);
+  return d >= FUS[fl.length][0] ? { i: fl.length, d } : null;
+}
+function fuMsg(l, i) {
+  const q = l.quote || {}, n = (q.name || l.name || "").trim().split(/\s+/)[0], dest = (q.dest || l.interest || "").trim();
+  let t = FUS[i][1];
+  t = n ? t.replace(/\{שם\}/g, n) : t.replace(/ ?\{שם\}/g, "");
+  t = dest ? t.replace(/\{יעד\}/g, dest) : t.replace(/ ?ל?\{יעד\}/g, "");
+  return t;
+}
 function due(l) {
   if (l.status === 3 || l.status === 4) return "";
   if (l.fu) { const t = todayS(); return l.fu < t ? "\u05de\u05e2\u05e7\u05d1 \u05d1\u05d0\u05d9\u05d7\u05d5\u05e8" : l.fu === t ? "\u05de\u05e2\u05e7\u05d1 \u05d4\u05d9\u05d5\u05dd" : ""; }
+  const fi = fuInfo(l); if (fi) return "פולו אפ "+(fi.i+1)+" ממתין";
   const d = Math.floor((Date.now() - (l.created||Date.now())) / 864e5);
   return (l.status === 0 || l.status === 5) && d >= 3 ? "\u05de\u05de\u05ea\u05d9\u05e0\u05d4 "+d+" \u05d9\u05de\u05d9\u05dd" : "";
 }
@@ -246,6 +303,7 @@ function render() {
     (canWrite?'<label class="fu">\u05de\u05e2\u05e7\u05d1 <input type="date" data-act="fu" value="'+esc(l.fu||"")+'"></label>':"")+
     (me.uid?'<button class="link" data-act="own" type="button">'+(l.owner===me.uid?"\u05e9\u05d7\u05e8\u05d5\u05e8":"\u05e7\u05d7 \u05d0\u05dc\u05d9")+"</button>":"")+
     (l.phone?'<select class="tpl" data-act="tpl"><option value="">\u05d4\u05d5\u05d3\u05e2\u05d4 \u05de\u05d5\u05db\u05e0\u05d4</option>'+TPL.map((t,i)=>'<optgroup label="'+esc(t[0])+'">'+t[1].map((v,j)=>'<option value="'+i+"-"+j+'">'+esc(v[0])+"</option>").join("")+"</optgroup>").join("")+'</select> <a class="link" href="'+wa(l.phone)+'" target="_blank" rel="noopener">\u05d5\u05d5\u05d0\u05d8\u05e1\u05d0\u05e4</a>':"")+
+    (canWrite&&l.phone&&fuInfo(l)?'<button class="fub" data-act="fup" type="button">שליחת פולו אפ '+(fuInfo(l).i+1)+'</button>':"")+
     (canWrite?'<button class="link" data-act="intake" type="button">\u05e9\u05d0\u05dc\u05d5\u05df \u05dc\u05e7\u05d5\u05d7</button>':"")+
     (canWrite?'<button class="link" data-act="quote" type="button">\u05d4\u05e6\u05e2\u05ea \u05de\u05d7\u05d9\u05e8</button>':"")+
     (isAdmin?'<button class="danger" data-act="del" type="button">\u05de\u05d7\u05d9\u05e7\u05d4</button>':"")+
@@ -288,7 +346,7 @@ $("chips").addEventListener("click", e => { const b = e.target.closest("button")
 
 $("list").addEventListener("change", async e => {
   const el = e.target, id = el.closest(".lead").dataset.id;
-  if (el.dataset.act === "st") { try { await updateDoc(doc(db,"leads",id), { status: +el.value }); } catch (x) { err(); } }
+  if (el.dataset.act === "st") { const v = +el.value, p = { status: v }; if (v === 2) p.stAt = Date.now(); try { await updateDoc(doc(db,"leads",id), p); } catch (x) { err(); } }
   if (el.dataset.act === "fu") { try { await updateDoc(doc(db,"leads",id), { fu: el.value }); } catch (x) { err(); } }
   if (el.dataset.act === "tpl") {
     const l = leads.find(x=>x.id===id), ij = el.value.split("-").map(Number); el.value = "";
@@ -305,6 +363,7 @@ $("list").addEventListener("click", async e => {
   const id = lead.dataset.id, l = leads.find(x=>x.id===id);
   const act = el.dataset.act;
   if (act === "own" && me.uid) { try { await updateDoc(doc(db,"leads",id), { owner: l.owner===me.uid?null:me.uid, ownerName: l.owner===me.uid?null:(me.name||me.email) }); } catch (x) { err(); } }
+  if (act === "fup") { const fi = fuInfo(l); if (fi) openMsg(l, "פולו אפ "+(fi.i+1), fuMsg(l, fi.i)); }
   if (act === "quote") qopen(id);
   if (act === "intake") ivopen(id);
   if (act === "del") { if (!el.dataset.armed) { el.dataset.armed="1"; el.textContent="\u05dc\u05de\u05d7\u05d5\u05e7?"; return; } try { await deleteDoc(doc(db,"leads",id)); } catch (x) { err(); } }
@@ -332,15 +391,20 @@ function qrender(save) {
   $("qo_note").textContent = v.note; $("qo_nb").style.display = v.note?"":"none";
   $("qo_valid").textContent = v.vd ? "\u05d4\u05d4\u05e6\u05e2\u05d4 \u05d1\u05ea\u05d5\u05e7\u05e3 \u05e2\u05d3 "+dtl(v.vd) : "";
   const msg = "\u05e9\u05dc\u05d5\u05dd"+(v.name?" "+v.name:"")+",\n\u05d4\u05e6\u05e2\u05ea \u05de\u05d7\u05d9\u05e8 \u05de-WaypointFlit:\n\u05d9\u05e2\u05d3: "+(v.dest||"")+"\n\u05ea\u05d0\u05e8\u05d9\u05db\u05d9\u05dd: "+dates+"\n\u05e0\u05d5\u05e1\u05e2\u05d9\u05dd: "+pax+"\n\u05de\u05d7\u05d9\u05e8 \u05dc\u05e0\u05d5\u05e1\u05e2: "+money(pr)+"\n\u05e1\u05d4\u05f4\u05db: "+money(tot)+(items.length?"\n\u05db\u05d5\u05dc\u05dc: "+items.join(", "):"")+(v.vd?"\n\u05d4\u05d4\u05e6\u05e2\u05d4 \u05d1\u05ea\u05d5\u05e7\u05e3 \u05e2\u05d3 "+dtl(v.vd):"");
-  qmsg = msg;
-  $("qwa").href = "https://wa.me/"+(v.phone?wa(v.phone).slice(14):"")+"?text="+encodeURIComponent(msg);
+  const cm = $("q_msg").value.trim();
+  if (!cm) $("q_msg").placeholder = msg;
+  qmsg = cm || msg;
+  $("qwa").href = "https://wa.me/"+(v.phone?wa(v.phone).slice(14):"")+"?text="+encodeURIComponent(qmsg);
   if (save && qid) { clearTimeout(qt); const id=qid; qt=setTimeout(()=>{ updateDoc(doc(db,"leads",id), { quote:v, offer:{price:tot,dates,hotel:v.hotel,pax:n} }).catch(()=>{}); }, 800); }
 }
 function qopen(id) {
   const l = leads.find(x=>x.id===id); if (!l) return;
   qid = id; const q = l.quote||{}, def = { name:l.name, phone:l.phone, dest:"\u05d5\u05dc\u05d9\u05e0\u05d2\u05e8\u05d3, \u05d1\u05d5\u05dc\u05d2\u05e8\u05d9\u05d4", ad:l.pax||2, ch:0, pr:3500, inc:"\u05d8\u05d9\u05e1\u05d5\u05ea \u05d4\u05dc\u05d5\u05da \u05d5\u05d7\u05d6\u05d5\u05e8\n\u05dc\u05d9\u05e0\u05d4 \u05d1\u05de\u05dc\u05d5\u05df" };
   QF.forEach(k => $("q_"+k).value = q[k]!=null ? q[k] : (def[k]!=null?def[k]:""));
-  $("qm").classList.add("on"); qrender(false);
+  $("q_msg").value = l.quoteMsg || "";
+  const sp = l.split || {}; SPF.forEach(k => $("sp_"+k).value = sp[k] || ""); $("sp_all").checked = !!sp.all; $("splitbox").open = !!(sp.fl || sp.ht);
+  $("pastebox").open = false; $("ps_t").value = ""; $("ps_d").value = todayS(); $("ps_st").textContent = "";
+  $("qm").classList.add("on"); qrender(false); splitCalc();
 }
 QF.forEach(k => $("q_"+k).addEventListener("input", ()=>qrender(true)));
 
@@ -366,16 +430,99 @@ IVF.forEach(k => $("iv_"+k).addEventListener("input", ivsave));
 $("ivclose").addEventListener("click", ()=>{ ivid=null; $("ivm").classList.remove("on"); });
 $("qclose").addEventListener("click", ()=>{ $("qm").classList.remove("on"); qid=null; });
 $("qprint").addEventListener("click", ()=>{ try { window.print(); } catch(e){} });
-$("qwa").addEventListener("click", async () => {
+$("qwa").addEventListener("click", () => { qsave(Date.now()).catch(()=>{}); });
+async function qsave(T) {
   if (!qid) return;
   const l = leads.find(x=>x.id===qid); if (!l) return;
   const v = {}; QF.forEach(k => v[k] = $("q_"+k).value.trim());
   const n = (+v.ad||0)+(+v.ch||0), pr = +v.pr||0, total = n*pr;
   const dates = v.d1 && v.d2 ? dtl(v.d1)+" \u2013 "+dtl(v.d2) : (dtl(v.d1)||dtl(v.d2)||"\u05d9\u05e2\u05d5\u05d3\u05db\u05df");
-  const p = { quote:v, offer:{price:total,dates,hotel:v.hotel,pax:n}, sentAt:Date.now(), qlog:(l.qlog||[]).concat([{t:Date.now(),dest:v.dest,total,by:me.uid}]) };
+  const p = { quote:v, offer:{price:total,dates,hotel:v.hotel,pax:n}, sentAt:T, quoteMsg:$("q_msg").value, qlog:(l.qlog||[]).concat([{t:T,dest:v.dest,total,text:qmsg,by:me.uid}]) };
   if (l.status !== 3) p.status = 2;
-  try { await updateDoc(doc(db,"leads",qid), p); } catch (x) {}
+  await updateDoc(doc(db,"leads",qid), p);
+}
+
+// ----- הודעה חופשית בהצעה
+let mt = null;
+$("q_msg").addEventListener("input", () => { qrender(false); if (!qid) return; const id = qid, v = $("q_msg").value; clearTimeout(mt); mt = setTimeout(() => updateDoc(doc(db,"leads",id), { quoteMsg: v }).catch(()=>{}), 800); });
+
+// ----- פירוט מחיר
+const SPF = ["fl","ht","tr","lg"], SPN = { fl:"✈️ טיסות", ht:"🏨 מלון", tr:"🚐 העברות", lg:"🧳 כבודה" };
+let spt = null, spRes = null;
+const qTotal = () => Math.round(((+$("q_ad").value||0)+(+$("q_ch").value||0)) * (+$("q_pr").value||0));
+function splitCalc() {
+  const c = {}; SPF.forEach(k => c[k] = Math.max(0, +$("sp_"+k).value || 0));
+  const T = qTotal(), cost = SPF.reduce((a,k) => a + c[k], 0), out = $("sp_out"); spRes = null;
+  if (!T) { out.innerHTML = "<div>קודם צריך מחיר בטופס (מחיר לנוסע ומספר נוסעים)</div>"; return; }
+  if (!cost) { out.innerHTML = "<div>הכניסו לפחות עלות אחת</div>"; return; }
+  if (cost > T) { out.innerHTML = '<div style="color:var(--danger)">העלויות ('+money(cost)+') גבוהות מהמחיר הכולל ('+money(T)+')</div>'; return; }
+  const mk = SPF.filter(k => c[k] && ($("sp_all").checked || k === "fl" || k === "ht"));
+  const base = mk.reduce((a,k) => a + c[k], 0), M = T - cost, r = {};
+  SPF.forEach(k => r[k] = c[k]);
+  if (base) mk.forEach(k => r[k] = c[k] + M * c[k] / base); else r[SPF.find(k => c[k])] += M;
+  const act = SPF.filter(k => c[k] || r[k]);
+  const big = act.reduce((a,k) => r[k] > r[a] ? k : a, act[0]);
+  act.forEach(k => { if (k !== big) r[k] = Math.max(c[k], Math.round(r[k] / 10) * 10); });
+  r[big] = T - act.filter(k => k !== big).reduce((a,k) => a + r[k], 0);
+  spRes = { T, r, act };
+  out.innerHTML = act.map(k => "<div><span>"+SPN[k]+"</span><b>"+money(r[k])+"</b></div>").join("") + "<div><span>סה״כ</span><b>"+money(T)+"</b></div><div style=\"color:var(--mut)\"><span>הרווח שלך</span><span>"+money(M)+"</span></div>";
+}
+function splitSave() { if (!qid) return; const id = qid, v = {}; SPF.forEach(k => v[k] = $("sp_"+k).value); v.all = $("sp_all").checked; clearTimeout(spt); spt = setTimeout(() => updateDoc(doc(db,"leads",id), { split: v }).catch(()=>{}), 800); }
+SPF.forEach(k => $("sp_"+k).addEventListener("input", () => { splitCalc(); splitSave(); }));
+$("sp_all").addEventListener("change", () => { splitCalc(); splitSave(); });
+["ad","ch","pr"].forEach(k => $("q_"+k).addEventListener("input", splitCalc));
+$("sp_add").addEventListener("click", () => {
+  splitCalc(); if (!spRes) return;
+  const blk = "🧾 *פירוט המחיר:*\n" + spRes.act.map(k => SPN[k]+": "+Math.round(spRes.r[k]).toLocaleString("he-IL")+" ₪").join("\n");
+  const ta = $("q_msg"); let t = ta.value.trim() || ta.placeholder || "";
+  t = t.replace(/🧾 \*פירוט המחיר:\*\n(?:.+\n?)*?(?=\n|$)/, "").replace(/\n{3,}/g, "\n\n");
+  const lines = t.split("\n"), i = lines.findIndex(x => /💰|סה״כ|מחיר כולל/.test(x));
+  if (i >= 0) lines.splice(i, 0, blk, ""); else lines.push("", blk);
+  ta.value = lines.join("\n"); ta.dispatchEvent(new Event("input"));
 });
+
+// ----- הצעה שכבר נשלחה בוואטסאפ
+const isoFrom = (d, m, y) => { y = +y; if (y < 100) y += 2000; return y+"-"+String(m).padStart(2,"0")+"-"+String(d).padStart(2,"0"); };
+$("ps_go").addEventListener("click", async e => {
+  const b = e.currentTarget, st = $("ps_st"), t = $("ps_t").value.trim(), d = $("ps_d").value;
+  if (!t) { st.textContent = "הדביקו את ההודעה ששלחתם"; return; }
+  if (!qid) return;
+  b.disabled = true;
+  try {
+    const nums = [...t.matchAll(/(?:₪\s*([\d,]+(?:\.\d+)?)|([\d,]+(?:\.\d+)?)\s*(?:₪|ש["״]ח|שקל))/g)].map(m => +String(m[1]||m[2]).replace(/,/g,"")).filter(x => x > 0);
+    const ds = [...t.matchAll(/(\d{1,2})[\/.](\d{1,2})[\/.](\d{2,4})/g)].map(m => isoFrom(m[1], m[2], m[3]));
+    if (ds[0]) $("q_d1").value = ds[0];
+    if (ds[1]) $("q_d2").value = ds[1];
+    const total = nums.length ? Math.max(...nums) : 0, n = (+$("q_ad").value||0)+(+$("q_ch").value||0);
+    if (total && n) $("q_pr").value = Math.round(total / n * 100) / 100;
+    $("q_msg").value = t; qrender(false);
+    await qsave(d && d !== todayS() ? new Date(d+"T12:00:00").getTime() : Date.now());
+    st.textContent = "✅ עודכן והליד סומן 'הצעה נשלחה'" + (total ? "" : ". לא זיהיתי מחיר, כדאי למלא ידנית") + ". בדקו יעד, תאריכים ונוסעים בטופס.";
+    $("ps_t").value = "";
+  } catch (x) { st.textContent = "העדכון לא הצליח, נסו שוב"; }
+  b.disabled = false;
+});
+
+// ----- עריכת הודעות פולו אפ (מנהל)
+onSnapshot(doc(db,"settings","followups"), d => { if (d.exists()) setFUS((d.data()||{}).steps); }, () => {});
+function fmOpen() {
+  $("fmlist").innerHTML = FUS.map((x,i) => '<div class="fms"><b>פולו אפ '+(i+1)+'</b><label class="chk">לשלוח אחרי <input type="number" min="1" data-fd="'+i+'"> '+(i ? "ימים מפולו אפ "+i : "ימים מההצעה")+'</label><textarea data-ft="'+i+'"></textarea></div>').join("");
+  FUS.forEach((x,i) => { document.querySelector('[data-fd="'+i+'"]').value = x[0]; document.querySelector('[data-ft="'+i+'"]').value = x[1]; });
+  $("fmst").textContent = ""; $("fm").classList.add("on");
+}
+const fmStore = a => setDoc(doc(db,"settings","followups"), { steps: a });
+if (isAdmin) {
+  $("fued").addEventListener("click", fmOpen);
+  $("fmsave").addEventListener("click", async () => {
+    const a = FUS.map((x,i) => ({ d: Math.max(1, +document.querySelector('[data-fd="'+i+'"]').value || 1), t: document.querySelector('[data-ft="'+i+'"]').value.trim() }));
+    if (a.some(x => !x.t)) { $("fmst").textContent = "אי אפשר להשאיר הודעה ריקה"; return; }
+    try { await fmStore(a); $("fmst").textContent = "✅ נשמר"; } catch (e) { $("fmst").textContent = "השמירה לא הצליחה. ודאו שעדכנתם את firestore.rules"; }
+  });
+  $("fmreset").addEventListener("click", async () => {
+    try { await fmStore(FUS0.map(x => ({ d: x[0], t: x[1] }))); fmOpen(); $("fmst").textContent = "✅ הוחזר לברירת המחדל"; } catch (e) { $("fmst").textContent = "השמירה לא הצליחה. ודאו שעדכנתם את firestore.rules"; }
+  });
+}
+$("fmclose").addEventListener("click", () => $("fm").classList.remove("on"));
 
 let mlead = null, mname = "";
 function upMM() { const l = leads.find(x=>x.id===mlead); $("mmwa").href = (l&&l.phone?wa(l.phone):"https://wa.me/")+"?text="+encodeURIComponent($("mmtxt").value); }
