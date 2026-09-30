@@ -250,15 +250,18 @@ const col = collection(db, "leads");
 const FUS0 = [[2,"היי {שם} 😊\nרציתי לבדוק אם יצא לך לעבור על ההצעה ששלחתי ל{יעד}?\nאם יש שאלות או משהו שתרצה לשנות – אני כאן בשמחה 🙏\nWaypointFlit"],[3,"היי {שם} 👋\nרק עדכון קטן – המחירים והמקומות בטיסות ובמלון משתנים כל הזמן, וההצעה ששלחתי ל{יעד} בתוקף לזמינות הנוכחית בלבד.\nאם זה מתאים לך, כדאי לסגור בקרוב כדי לשמור על המחיר 💰\nלהתקדם? 😊\nWaypointFlit"],[5,"היי {שם} 😊\nלא שמעתי ממך לגבי ההצעה ל{יעד} – אם משהו לא הסתדר (מחיר, תאריכים, מלון), אשמח להתאים לך הצעה אחרת.\nרק תגיד מה חשוב לך ואני אדאג לזה ✈️\nWaypointFlit"]];
 let FUS = FUS0.map(x => x.slice());
 function setFUS(a) { FUS = (Array.isArray(a) && a.length === 3 && a.every(x => x && x.t)) ? a.map(x => [Math.max(1, +x.d || 1), String(x.t)]) : FUS0.map(x => x.slice()); render(); }
-function fuInfo(l) {
+const dayStr = t => { const d = new Date(t); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+function fuPlan(l) {
   if (l.status !== 2) return null;
   const base = l.sentAt || l.stAt || l.created || Date.now();
   const fl = (l.mlog || []).filter(m => m.t >= base && String(m.name).startsWith("פולו אפ"));
   if (fl.length >= FUS.length) return null;
-  const last = fl.length ? Math.max(...fl.map(m => m.t)) : base;
-  const d = Math.floor((Date.now() - last) / 864e5);
-  return d >= FUS[fl.length][0] ? { i: fl.length, d } : null;
+  const i = fl.length, last = i ? Math.max(...fl.map(m => m.t)) : base;
+  const custom = l.fuNext && l.fuNextStep === i;
+  const dueT = custom ? new Date(l.fuNext + "T00:00:00").getTime() : last + FUS[i][0] * 864e5;
+  return { i, dueT, custom };
 }
+function fuInfo(l) { const p = fuPlan(l); return p && Date.now() >= p.dueT ? p : null; }
 function fuMsg(l, i) {
   const q = l.quote || {}, n = (q.name || l.name || "").trim().split(/\s+/)[0], dest = (q.dest || l.interest || "").trim();
   let t = FUS[i][1];
@@ -302,8 +305,9 @@ function render() {
     '<div class="acts">'+
     (canWrite?'<label class="fu">\u05de\u05e2\u05e7\u05d1 <input type="date" data-act="fu" value="'+esc(l.fu||"")+'"></label>':"")+
     (me.uid?'<button class="link" data-act="own" type="button">'+(l.owner===me.uid?"\u05e9\u05d7\u05e8\u05d5\u05e8":"\u05e7\u05d7 \u05d0\u05dc\u05d9")+"</button>":"")+
-    (l.phone?'<select class="tpl" data-act="tpl"><option value="">\u05d4\u05d5\u05d3\u05e2\u05d4 \u05de\u05d5\u05db\u05e0\u05d4</option>'+TPL.map((t,i)=>'<optgroup label="'+esc(t[0])+'">'+t[1].map((v,j)=>'<option value="'+i+"-"+j+'">'+esc(v[0])+"</option>").join("")+"</optgroup>").join("")+'</select> <a class="link" href="'+wa(l.phone)+'" target="_blank" rel="noopener">\u05d5\u05d5\u05d0\u05d8\u05e1\u05d0\u05e4</a>':"")+
+    (l.phone?'<select class="tpl" data-act="tpl"><option value="">\u05d4\u05d5\u05d3\u05e2\u05d4 \u05de\u05d5\u05db\u05e0\u05d4</option>'+TPL.map((t,i)=>'<optgroup label="'+esc(t[0])+'">'+t[1].map((v,j)=>'<option value="'+i+"-"+j+'">'+esc(v[0])+"</option>").join("")+"</optgroup>").join("")+'<optgroup label="⏰ פולו אפ">'+FUS.map((x,k)=>'<option value="f-'+k+'">פולו אפ '+(k+1)+'</option>').join("")+'</optgroup></select> <a class="link" href="'+wa(l.phone)+'" target="_blank" rel="noopener">\u05d5\u05d5\u05d0\u05d8\u05e1\u05d0\u05e4</a>':"")+
     (canWrite&&l.phone&&fuInfo(l)?'<button class="fub" data-act="fup" type="button">שליחת פולו אפ '+(fuInfo(l).i+1)+'</button>':"")+
+    (canWrite&&fuPlan(l)?'<label class="fu" title="מתי לשלוח את הפולו אפ הבא">⏰ פולו אפ '+(fuPlan(l).i+1)+' <input type="date" data-act="fun" value="'+dayStr(fuPlan(l).dueT)+'"></label>':"")+
     (canWrite?'<button class="link" data-act="intake" type="button">\u05e9\u05d0\u05dc\u05d5\u05df \u05dc\u05e7\u05d5\u05d7</button>':"")+
     (canWrite?'<button class="link" data-act="quote" type="button">\u05d4\u05e6\u05e2\u05ea \u05de\u05d7\u05d9\u05e8</button>':"")+
     (isAdmin?'<button class="danger" data-act="del" type="button">\u05de\u05d7\u05d9\u05e7\u05d4</button>':"")+
@@ -348,6 +352,15 @@ $("list").addEventListener("change", async e => {
   const el = e.target, id = el.closest(".lead").dataset.id;
   if (el.dataset.act === "st") { const v = +el.value, p = { status: v }; if (v === 2) p.stAt = Date.now(); try { await updateDoc(doc(db,"leads",id), p); } catch (x) { err(); } }
   if (el.dataset.act === "fu") { try { await updateDoc(doc(db,"leads",id), { fu: el.value }); } catch (x) { err(); } }
+  if (el.dataset.act === "fun") {
+    const l = leads.find(x=>x.id===id), pl = l && fuPlan(l); if (!pl) return;
+    try { await updateDoc(doc(db,"leads",id), el.value ? { fuNext: el.value, fuNextStep: pl.i } : { fuNext: null, fuNextStep: null }); } catch (x) { err(); }
+  }
+  if (el.dataset.act === "tpl" && el.value.startsWith("f-")) {
+    const l = leads.find(x=>x.id===id), k = +el.value.slice(2); el.value = "";
+    if (l && FUS[k]) openMsg(l, "פולו אפ "+(k+1), fuMsg(l, k));
+    return;
+  }
   if (el.dataset.act === "tpl") {
     const l = leads.find(x=>x.id===id), ij = el.value.split("-").map(Number); el.value = "";
     const T = TPL[ij[0]] && TPL[ij[0]][1][ij[1]]; if (!T) return;
