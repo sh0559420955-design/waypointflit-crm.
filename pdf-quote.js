@@ -1,6 +1,5 @@
 // pdf-quote.js – קריאת הצעת מחיר מ-PDF (פלטפורמת NEXT) בלי AI ובלי שרת.
 // מחלץ טקסט עם pdf.js בדפדפן, מזהה את הפרטים ובונה הודעת וואטסאפ בסגנון WaypointFlit.
-
 const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
 const loadJS = src => new Promise((ok, no) => { const s = document.createElement("script"); s.src = src; s.onload = ok; s.onerror = no; document.head.appendChild(s); });
 
@@ -21,18 +20,36 @@ const AIR = { "Arkia":"ארקיע","El Al":"אל על","EL AL":"אל על","Isra
 const CITY = { TLV:"תל אביב",ATH:"אתונה",SKG:"סלוניקי",HER:"כרתים",RHO:"רודוס",JMK:"מיקונוס",JTR:"סנטוריני",CFU:"קורפו",PRG:"פראג",BUD:"בודפשט",VIE:"וינה",SOF:"סופיה",VAR:"וארנה",BOJ:"בורגס",PDV:"פלובדיב",LCA:"לרנקה",PFO:"פאפוס",OTP:"בוקרשט",BER:"ברלין",MUC:"מינכן",FRA:"פרנקפורט",ROM:"רומא",FCO:"רומא",MXP:"מילאנו",LIN:"מילאנו",BGY:"מילאנו",VCE:"ונציה",NAP:"נאפולי",PAR:"פריז",CDG:"פריז",ORY:"פריז",NCE:"ניס",AMS:"אמסטרדם",BCN:"ברצלונה",MAD:"מדריד",LIS:"ליסבון",LON:"לונדון",LHR:"לונדון",LTN:"לונדון",STN:"לונדון",LGW:"לונדון",DXB:"דובאי",AUH:"אבו דאבי",IST:"איסטנבול",SAW:"איסטנבול",AYT:"אנטליה",BUS:"בטומי",TBS:"טביליסי",KRK:"קרקוב",WAW:"ורשה",BTS:"ברטיסלבה",LJU:"לובליאנה",TIV:"טיבט",TGD:"פודגוריצה",TIA:"טירנה",SPU:"ספליט",DBV:"דוברובניק",ZAG:"זאגרב",BEG:"בלגרד",MLA:"מלטה",RAK:"מרקש",BKK:"בנגקוק",HKT:"פוקט",NYC:"ניו יורק",JFK:"ניו יורק",EWR:"ניו יורק",ZRH:"ציריך",GVA:"ז'נבה",SZG:"זלצבורג",INN:"אינסברוק",TSF:"ונציה",CTA:"קטניה",PMO:"פלרמו",BRI:"בארי",SVQ:"סביליה",AGP:"מלגה",PMI:"מיורקה",OPO:"פורטו",BUH:"בוקרשט",KUT:"קוטאיסי",GYD:"באקו",EVN:"ירוואן" };
 const COUNTRY = { Greece:"יוון","Czech Republic":"צ'כיה",Czechia:"צ'כיה",Hungary:"הונגריה",Austria:"אוסטריה",Bulgaria:"בולגריה",Cyprus:"קפריסין",Romania:"רומניה",Germany:"גרמניה",Italy:"איטליה",France:"צרפת",Netherlands:"הולנד",Spain:"ספרד",Portugal:"פורטוגל","United Kingdom":"אנגליה","United Arab Emirates":"איחוד האמירויות",Turkey:"טורקיה",Türkiye:"טורקיה",Georgia:"גאורגיה",Poland:"פולין",Slovakia:"סלובקיה",Slovenia:"סלובניה",Montenegro:"מונטנגרו",Albania:"אלבניה",Croatia:"קרואטיה",Serbia:"סרביה",Malta:"מלטה",Morocco:"מרוקו",Thailand:"תאילנד",Switzerland:"שווייץ","United States":"ארה\"ב",USA:"ארה\"ב",Azerbaijan:"אזרבייג'ן",Armenia:"ארמניה" };
 const DAY = ["א'","ב'","ג'","ד'","ה'","ו'","ש'"];
+
 const heAir = a => { const k = Object.keys(AIR).sort((x,y)=>y.length-x.length).find(k => a.toLowerCase().includes(k.toLowerCase())); return k ? AIR[k] : a; };
 const toISO = d => { const m = d.match(/(\d{1,2})\/(\d{1,2})\/(\d{2,4})/); if (!m) return null; let y = +m[3]; if (y < 100) y += 2000; return y+"-"+m[2].padStart(2,"0")+"-"+m[1].padStart(2,"0"); };
 const dayOf = iso => iso ? DAY[new Date(iso+"T12:00:00").getDay()] : "";
 const ddmmyy = iso => iso ? iso.slice(8,10)+"/"+iso.slice(5,7)+"/"+iso.slice(2,4) : "";
 const num = s => +String(s).replace(/,/g,"");
 
+// משקל בק"ג – עובד עם כל סוג גרשיים, והמספר יכול להופיע לפני או אחרי ק"ג (בגלל כיווניות ב-PDF)
+const KG = /(\d+)\s*ק["'״”׳]?ג|ק["'״”׳]?ג\s*(\d+)/;
+// מחפש שורה של פריט כבודה שנרכש (לא המשפט הקבוע "מזוודות אינן כלולות") ומחזיר משקל וכמות
+function bagInfo(L, word) {
+  for (let i = 0; i < L.length; i++) {
+    const x = L[i];
+    if (!x.includes(word) || /אינן|לא כלול|לא טרולי/.test(x)) continue;
+    const w = x.match(KG);
+    if (!w) continue;
+    const rest = x.replace(KG, " ").match(/(\d+)/);
+    let q = rest ? +rest[1] : 0;
+    if (!q && L[i+1] && /^:?\s*\d+\s*:?$/.test(L[i+1])) q = +L[i+1].replace(/\D/g, "");
+    return { kg: +(w[1] || w[2]), qty: q };
+  }
+  return null;
+}
+
 function roomHe(s) {
   if (!s) return "";
   const t = s.toLowerCase(), p = [];
   const type = [["junior suite","ג'וניור סוויטה"],["suite","סוויטה"],["family","משפחתי"],["executive","אקזקיוטיב"],["deluxe","דלוקס"],["superior","סופריור"],["standard","סטנדרט"],["classic","קלאסי"],["comfort","קומפורט"],["economy","אקונומי"],["studio","סטודיו"],["apartment","דירה"]].find(x => t.includes(x[0]));
   p.push("חדר " + (type ? type[1] : ""));
-  if (/triple/.test(t)) p.push("לשלושה"); else if (/quad/.test(t)) p.push("לארבעה");
+  if (/triple/.test(t)) p.push("לשלושה"); else if (/quad/.test(t)) p.push("לארבעה"); else if (/double/.test(t)) p.push("זוגי"); else if (/twin/.test(t)) p.push("עם 2 מיטות");
   const view = [["sea","נוף לים"],["city","נוף לעיר"],["pool","נוף לבריכה"],["garden","נוף לגינה"],["mountain","נוף להרים"],["acropolis","נוף לאקרופוליס"],["river","נוף לנהר"]].find(x => t.includes(x[0]+" view") || t.includes("with "+x[0]) || t.includes(x[0]));
   if (view) p.push("עם " + view[1]);
   return p.join(" ").replace(/\s+/g," ").trim();
@@ -65,24 +82,31 @@ export function parseQuote(raw) {
     f.d = toISO(f.dt||""); f.tm = (String(f.dt||"").match(/(\d{1,2}:\d{2})/)||[])[1]; f.atm = (String(f.at||"").match(/(\d{1,2}:\d{2})/)||[])[1];
   });
 
-  // נוסעים
-  if ((m = t.match(/(\d+)\s*מבוגרים/))) o.adults = +m[1];
-  else if ((m = t.match(/כרטיס מבוגר\s*:?\s*(\d+)/))) o.adults = +m[1];
-  if ((m = t.match(/(\d+)\s*(?:ילדים|ילד)\b/)) || (m = t.match(/כרטיס ילד\s*:?\s*(\d+)/))) o.children = +m[1];
-  if ((m = t.match(/(\d+)\s*(?:תינוקות|תינוק)/)) || (m = t.match(/כרטיס תינוק\s*:?\s*(\d+)/))) o.infants = +m[1];
+  // נוסעים – קודם לפי כמות הכרטיסים (לא לפי תפוסת חדר אחד)
+  if ((m = t.match(/כרטיס מבוגר\s*:?\s*(\d+)/))) o.adults = +m[1];
+  else {
+    const rs = [...t.matchAll(/חדר \d+\s*\n?\s*(\d+)\s*מבוגרים/g)];
+    if (rs.length) o.adults = rs.reduce((a, x) => a + +x[1], 0);
+    else if ((m = t.match(/(\d+)\s*מבוגרים/))) o.adults = +m[1];
+  }
+  if ((m = t.match(/כרטיס ילד\s*:?\s*(\d+)/)) || (m = t.match(/(\d+)\s*(?:ילדים|ילד)(?![א-ת])/))) o.children = +m[1];
+  if ((m = t.match(/כרטיס תינוק\s*:?\s*(\d+)/)) || (m = t.match(/(\d+)\s*(?:תינוקות|תינוק)(?![א-ת])/))) o.infants = +m[1];
 
   // כבודה כלולה
-  if ((m = t.match(/טרולי במשקל\s*(\d+)\s*ק"ג/))) o.trolley = +m[1];
-  if ((m = t.match(/מזוודה(?: במשקל)?\s*(\d+)\s*ק"ג/))) o.suitcase = +m[1];
+  const tr = bagInfo(L, "טרולי"), sc = bagInfo(L, "מזוודה");
+  if (tr) { o.trolley = tr.kg; o.trolleys = tr.qty; }
+  if (sc) { o.suitcase = sc.kg; o.bags = sc.qty; }
 
   // מלון
   if ((m = t.match(/סיכום הזמנה\s*\n\s*([^\n]+)/))) o.hotel = m[1].trim();
   if (!o.hotel && (m = t.match(/\n\s*([^\n]+?)\s*\n[^\n]*לחצו למידע מלא על המלון/))) o.hotel = m[1].trim();
   if (!o.hotel && (m = t.match(/\nמלון\s*\n\s*([^\n]+)/))) o.hotel = m[1].trim();
   if ((m = t.match(/\n\s*(\d{1,2}(?:\.\d)?)\s*\n\s*(מעולה|מצוין|נהדר|טוב מאוד|טוב|מצויין)/))) o.rating = m[1] + " – " + m[2];
+  else if ((m = t.match(/(מעולה|מצוין|נהדר|טוב מאוד|מצויין)\s*\n?\s*(\d{1,2}\.\d)/))) o.rating = m[2] + " – " + m[1];
   if ((m = t.match(/([A-Za-z][^\n]*?)\s+כתובת:/))) { const parts = m[1].split(",").map(x => x.replace(/\d+/g,"").trim()).filter(Boolean); o.countryEn = parts[parts.length-1]; o.cityEn = parts[parts.length-2]; }
   if ((m = t.match(/(\d+)\s*:\s*לילות/)) || (m = t.match(/(\d+)\s*לילות/)) || (m = t.match(/לילות\s*:?\s*(\d+)/))) o.nights = +m[1];
-  if ((m = t.match(/\d+\s*x\s+([A-Za-z][A-Za-z ,/&-]+)/))) o.roomEn = m[1].trim();
+  if ((m = t.match(/(\d+)\s*x\s+([A-Za-z][A-Za-z ,/&-]+)/))) { o.rooms = +m[1]; o.roomEn = m[2].trim(); }
+  if ((m = t.match(/(\d+)\s*חדרים/))) o.rooms = Math.max(o.rooms || 0, +m[1]);
   o.room = roomHe(o.roomEn);
   const board = [[/הכל כלול|all inclusive/i,"הכל כלול"],[/פנסיון מלא|full board/i,"פנסיון מלא"],[/חצי פנסיון|half board/i,"חצי פנסיון"],[/ארוחת בוקר|breakfast|bed and breakfast/i,"ארוחת בוקר"],[/לינה בלבד|room only/i,"לינה בלבד"]].find(x => x[0].test((t.match(/[^\n]*בסיס אירוח[^\n]*/)||[""])[0]));
   if (board) o.board = board[1];
@@ -106,15 +130,23 @@ export function parseQuote(raw) {
 
   // מה כלול
   if (o.flights.length) o.inc.push("טיסות הלוך וחזור");
-  if (o.trolley) o.inc.push("טרולי " + o.trolley + " ק\"ג לכל נוסע");
-  if (o.suitcase) o.inc.push("מזוודה " + o.suitcase + " ק\"ג לכל נוסע");
+  if (o.trolley) o.inc.push(bagText(o, "טרולי", o.trolley, o.trolleys));
+  if (o.suitcase) o.inc.push(bagText(o, "מזוודה", o.suitcase, o.bags));
   if (o.hotel) o.inc.push((o.nights ? o.nights + " לילות במלון " : "מלון ") + o.hotel + (o.board ? " – " + o.board : ""));
 
   // הערות
   if (/מזוודות אינן כלולות/.test(t) && !o.suitcase) o.notes.push("מזוודה גדולה לא כלולה (ניתן להוסיף בתשלום)");
+  if (/לא ניתן לביטול/.test(t) && o.flights.length) o.notes.push("כרטיסי הטיסה אינם ניתנים לשינוי או ביטול");
   if (/מיסים לתשלום במלון|Property Fee|Climate Resilience Fee/i.test(t)) o.notes.push("מס עיר משולם ישירות במלון");
   if (/תוקף ההצעה|שער החליפין/.test(t)) o.notes.push("ההצעה בכפוף לזמינות מקומות ולשער הדולר ביום התשלום");
   return o;
+}
+
+// "טרולי 8 ק"ג לכל נוסע" או "3 מזוודות של 20 ק"ג" כשהכמות קטנה ממספר הנוסעים
+function bagText(o, word, kg, qty) {
+  const pax = (o.adults || 0) + (o.children || 0);
+  if (qty && (!pax || qty < pax)) return (qty === 1 ? word : qty + " " + (word === "מזוודה" ? "מזוודות" : "טרולים")) + " של " + kg + " ק\"ג";
+  return word + " " + kg + " ק\"ג לכל נוסע";
 }
 
 export function buildMsg(o, name, extras = {}) {
@@ -127,14 +159,14 @@ export function buildMsg(o, name, extras = {}) {
       const lab = o.flights.length === 2 ? (i ? "חזור" : "הלוך") : "טיסה " + (i + 1);
       L.push(lab + ": יום " + dayOf(f.d) + " " + ddmmyy(f.d) + " | " + f.fn + (f.tm ? " " + f.tm : "") + " ← " + f.tn + (f.atm ? " " + f.atm : "") + (f.airline ? " (" + heAir(f.airline) + ")" : ""));
     });
-    if (o.trolley) L.push("🧳 כולל טרולי " + o.trolley + " ק\"ג לכל נוסע");
-    if (o.suitcase) L.push("🧳 כולל מזוודה " + o.suitcase + " ק\"ג לכל נוסע");
+    if (o.trolley) L.push("🧳 כולל " + bagText(o, "טרולי", o.trolley, o.trolleys));
+    if (o.suitcase) L.push("🧳 כולל " + bagText(o, "מזוודה", o.suitcase, o.bags));
     L.push("");
   }
   if (o.hotel) {
     L.push("🏨 *מלון " + o.hotel + "*");
     if (o.rating) L.push("דירוג אורחים " + o.rating);
-    const r = [o.nights ? o.nights + " לילות" : "", o.room].filter(Boolean).join(" | ");
+    const r = [o.nights ? o.nights + " לילות" : "", (o.rooms > 1 ? o.rooms + " × " : "") + (o.room || "")].filter(x => x.trim()).join(" | ");
     if (r) L.push(r);
     if (o.board) L.push((o.board === "הכל כלול" ? "🍽️ " : "🍳 ") + "כולל " + o.board);
     L.push("");
