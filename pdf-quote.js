@@ -82,13 +82,6 @@ export function parseQuote(raw) {
     f.d = toISO(f.dt||""); f.tm = (String(f.dt||"").match(/(\d{1,2}:\d{2})/)||[])[1]; f.atm = (String(f.at||"").match(/(\d{1,2}:\d{2})/)||[])[1];
   });
 
-  // נוסעים – קודם לפי כמות הכרטיסים (לא לפי תפוסת חדר אחד)
-  if ((m = t.match(/כרטיס מבוגר\s*:?\s*(\d+)/))) o.adults = +m[1];
-  else {
-    const rs = [...t.matchAll(/חדר \d+\s*\n?\s*(\d+)\s*מבוגרים/g)];
-    if (rs.length) o.adults = rs.reduce((a, x) => a + +x[1], 0);
-    else if ((m = t.match(/(\d+)\s*מבוגרים/))) o.adults = +m[1];
-  }
   if ((m = t.match(/כרטיס ילד\s*:?\s*(\d+)/)) || (m = t.match(/(\d+)\s*(?:ילדים|ילד)(?![א-ת])/))) o.children = +m[1];
   if ((m = t.match(/כרטיס תינוק\s*:?\s*(\d+)/)) || (m = t.match(/(\d+)\s*(?:תינוקות|תינוק)(?![א-ת])/))) o.infants = +m[1];
 
@@ -108,6 +101,17 @@ export function parseQuote(raw) {
   if ((m = t.match(/(\d+)\s*x\s+([A-Za-z][A-Za-z ,/&-]+)/))) { o.rooms = +m[1]; o.roomEn = m[2].trim(); }
   if ((m = t.match(/(\d+)\s*חדרים/))) o.rooms = Math.max(o.rooms || 0, +m[1]);
   o.room = roomHe(o.roomEn);
+  if (!o.rooms && (m = t.match(/[A-Za-z][A-Za-z ]*?\s+x\s*(\d+)/))) o.rooms = +m[1];
+
+  // מבוגרים – לוקחים את הגבוה מבין: כמות כרטיסי מבוגר בהצעה, או חדרים × תפוסה לחדר
+  // (בגלל כיווניות ב-PDF המספר יכול להופיע לפני או אחרי, ולא לוקחים "2 מבוגרים" של חדר בודד)
+  const ad = [...t.matchAll(/כרטיס מבוגר[ \t:]*(\d+)|(\d+)[ \t:]*כרטיס מבוגר/g)].map(x => +(x[1] || x[2]));
+  const occ = (t.match(/תפוסה\s*:?\s*(\d+)\s*מבוגרים|(\d+)\s*מבוגרים\s*:?\s*תפוסה/) || []).slice(1).find(Boolean);
+  if (occ && o.rooms) ad.push(+occ * o.rooms);
+  const rs = [...t.matchAll(/חדר \d+\s*\n?\s*(\d+)\s*מבוגרים/g)];
+  if (rs.length > 1) ad.push(rs.reduce((a, x) => a + +x[1], 0));
+  if (ad.length) o.adults = Math.max(...ad);
+  else if ((m = t.match(/(\d+)\s*מבוגרים/))) o.adults = +m[1];
   const board = [[/הכל כלול|all inclusive/i,"הכל כלול"],[/פנסיון מלא|full board/i,"פנסיון מלא"],[/חצי פנסיון|half board/i,"חצי פנסיון"],[/ארוחת בוקר|breakfast|bed and breakfast/i,"ארוחת בוקר"],[/לינה בלבד|room only/i,"לינה בלבד"]].find(x => x[0].test((t.match(/[^\n]*בסיס אירוח[^\n]*/)||[""])[0]));
   if (board) o.board = board[1];
 
