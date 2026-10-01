@@ -338,7 +338,7 @@ const CSS = `
 .td-cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
 .td-code{background:#fff;border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
 .td-code span{font-size:12px;color:var(--mut)}.td-code b{font-size:18px;letter-spacing:.5px;text-align:start}.td-code small{font-size:12px;color:var(--mut)}
-.td-code.big{border:2px solid var(--or)}.td-code.long b{font-size:20px!important;overflow-wrap:anywhere}.td-code.big b{font-size:26px;color:var(--or);font-family:"Secular One",Heebo,sans-serif;font-weight:400}
+.td-code.big{border:2px solid var(--or)}.td-code.long b{font-size:17px!important;overflow-wrap:anywhere}.td-code.big b{font-size:26px;color:var(--or);font-family:"Secular One",Heebo,sans-serif;font-weight:400}
 .td-sec{padding:18px 20px;border-bottom:1px solid var(--line);break-inside:avoid}
 .td-sec h3{display:flex;align-items:center;gap:8px;font-family:"Secular One",Heebo,sans-serif;font-weight:400;font-size:20px;color:var(--nv);margin-bottom:10px}
 .td-sec h3 svg{width:22px;height:22px;color:var(--or)}
@@ -378,7 +378,8 @@ const CSS = `
 .td-small h4{font-size:13px;color:var(--mut);margin-bottom:4px}.td-small p{margin:0;font-size:12px;color:var(--mut);line-height:1.6}
 .td-foot{padding:14px 20px;background:var(--nv);color:#fff;display:flex;flex-direction:column;gap:3px;font-size:14px}.td-foot a{color:#fff}.td-foot small{opacity:.7;font-size:12px}
 @media(max-width:560px){.td-cgrid4{grid-template-columns:1fr 1fr}.td-time{font-size:26px}.td-line{min-width:60px}}
-@media print{.td-sheet{box-shadow:none;border-radius:0;font-size:13px}.td-sec{padding:12px 16px}}
+body.td-printing .td-sheet{width:760px!important;max-width:none!important;border-radius:0!important;box-shadow:none!important}
+@media print{body.td-printing{margin:0!important;padding:0!important;border:0!important;background:#fff!important}body.td-printing #tdm{padding:0!important;overflow:visible!important}body.td-printing #tdm .box{max-width:none!important;margin:0!important;padding:0!important;background:none!important}}
 #tdm .tdl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}#tdm .tdl .on{background:var(--pri);color:var(--onpri);border-color:var(--pri)}
 `;
 
@@ -423,6 +424,16 @@ async function readFiles() {
   $("td_st").textContent = (ok ? "✅ נקראו " + ok + " מסמכים. בדקו את הפרטים לפני השליחה." : "") + (bad.length ? " לא זיהיתי: " + bad.join(", ") : "");
   $("td_go").disabled = false; draw(); if (ok) save();
 }
+// עמוד אחד ארוך בגובה המסמך, בלי חיתוכים – בדיוק כמו שהוא נראה במסך
+export function printLong(sheet) {
+  if (!sheet) return () => {};
+  document.body.classList.add("td-printing");
+  const mm = Math.ceil(sheet.getBoundingClientRect().height * 25.4 / 96) + 2;
+  const st = document.createElement("style"); st.id = "td-page";
+  st.textContent = "@page{size:201mm " + mm + "mm;margin:0}";
+  document.head.appendChild(st);
+  return () => { document.body.classList.remove("td-printing"); st.remove(); };
+}
 function boot() {
   const st = document.createElement("style"); st.textContent = CSS; document.head.appendChild(st);
   const m = document.createElement("div"); m.className = "modal"; m.id = "tdm";
@@ -434,7 +445,12 @@ function boot() {
   $("td_close").addEventListener("click", () => { m.classList.remove("on"); cur.id = null; });
   $("td_go").addEventListener("click", readFiles);
   m.addEventListener("click", e => { const b = e.target.closest("[data-lang]"); if (b) { cur.lang = b.dataset.lang; draw(); save(); } });
-  $("td_print").addEventListener("click", () => { const q = $("qm"); const qo = q && q.classList.contains("on"); if (qo) q.classList.remove("on"); try { window.print(); } catch (e) {} if (qo) q.classList.add("on"); });
+  $("td_print").addEventListener("click", () => {
+    const q = $("qm"), qo = q && q.classList.contains("on"); if (qo) q.classList.remove("on");
+    const done = printLong(document.querySelector("#td_out .td-sheet"));
+    window.addEventListener("afterprint", () => { done(); if (qo) q.classList.add("on"); }, { once: true });
+    try { window.print(); } catch (e) { done(); }
+  });
   $("td_clear").addEventListener("click", e => { const b = e.currentTarget; if (!b.dataset.armed) { b.dataset.armed = "1"; b.textContent = "למחוק?"; return; } delete b.dataset.armed; b.textContent = "ניקוי"; cur.data = { items: [] }; draw(); save(); });
   const list = $("list"); if (!list) return;
   const add = () => list.querySelectorAll("article.lead").forEach(a => { const acts = a.querySelector(".acts"); if (acts && !acts.querySelector(".tdb")) { const b = document.createElement("button"); b.type = "button"; b.className = "link tdb"; b.textContent = "✈️ מסמכי נסיעה"; acts.appendChild(b); } });
