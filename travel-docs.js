@@ -232,7 +232,14 @@ export function renderDocs(data, lang, brand) {
   const L = T[lang] || T.he, he = lang === "he", B = Object.assign({}, BRAND, brand || {});
   const fl = data.items.filter(x => x.kind === "flight"), ho = data.items.filter(x => x.kind === "hotel");
   const allF = fl.flatMap(f => f.flights);
-  const dest = allF.length ? cityName(allF[0].to, lang) : ho[0] ? (he ? cityHe(ho[0].city) : ho[0].city) : "";
+  // היעד נקבע לפי עיר המלון; עיר הנחיתה מוצגת בנפרד כשהיא שונה (למשל נחיתה בסופיה, מלון בוולינגרד)
+  const arrCity = allF.length ? cityName(allF[0].to, lang) : "";
+  const hcRaw = ho[0] && ho[0].city ? String(ho[0].city).trim() : "";
+  let hotelCity = hcRaw ? (he ? cityHe(hcRaw) : hcRaw) : "";
+  if (hotelCity && arrCity && he && !/[א-ת]/.test(hotelCity) && plain(allF[0].to).toLowerCase() === hcRaw.toLowerCase()) hotelCity = arrCity;
+  const dest = hotelCity || arrCity;
+  const inC = s => (he ? "ב" + (/^ו(?!ו)/.test(s) ? "ו" : "") : "in ") + s;
+  const landNote = hotelCity && arrCity && hotelCity !== arrCity ? (he ? "✈️ נחיתה " + inC(arrCity) + " · 🏨 המלון " + inC(hotelCity) : "✈️ Arriving " + inC(arrCity) + " · 🏨 Hotel " + inC(hotelCity)) : "";
   const d1 = allF.length ? toISO(allF[0].dt) : ho[0] ? toISO(ho[0].ci) : "", d2 = allF.length > 1 ? toISO(allF[allF.length - 1].dt) : ho[0] ? toISO(ho[0].co) : "";
   const pax = fl.flatMap(f => f.pax);
   const lat = pax[0] ? pax[0].first + " " + pax[0].last : ho[0] && ho[0].rooms[0] ? ho[0].rooms[0].guest : "";
@@ -240,7 +247,7 @@ export function renderDocs(data, lang, brand) {
   const st = s => (L.status[s] || s || "");
   let h = '<article class="td-sheet" dir="' + L.dir + '" lang="' + lang + '" style="--nv:' + B.navy + ";--or:" + B.accent + ";--sky:" + B.sky + '">';
   h += '<header class="td-top"><div class="td-brand">' + (B.logo ? '<img src="' + E(B.logo) + '" alt="">' : "") + "<span>" + E(B.name) + '</span></div><div class="td-doc">' + E(L.title) + "</div></header>";
-  h += '<section class="td-hero"><p class="td-for">' + E(L.for) + " <b>" + E(who) + '</b></p><h2 class="td-dest">' + E(dest) + '</h2><p class="td-dates">' + E([fmtDate(d1, lang), fmtDate(d2, lang)].filter(Boolean).join(he ? " – " : " – ")) + "</p></section>";
+  h += '<section class="td-hero"><p class="td-for">' + E(L.for) + " <b>" + E(who) + '</b></p><h2 class="td-dest">' + E(dest) + '</h2><p class="td-dates">' + E([fmtDate(d1, lang), fmtDate(d2, lang)].filter(Boolean).join(he ? " – " : " – ")) + "</p>" + (landNote ? '<p class="td-dates">' + E(landNote) + "</p>" : "") + "</section>";
   // מספרים חשובים
   const codes = [];
   fl.forEach(f => { if (f.pnr) codes.push([L.pnr, f.pnr, L.pnrHint, true]); });
