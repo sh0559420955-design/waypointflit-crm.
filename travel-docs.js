@@ -256,6 +256,7 @@ export function renderDocs(data, lang, brand) {
   // טיסות
   if (allF.length) {
     h += '<section class="td-sec"><h3>' + IC.plane + E(L.flights) + (fl[0] && fl[0].fare ? ' <small class="td-fare">' + E(L.fare) + ": " + E(fl[0].fare) + "</small>" : "") + "</h3>";
+    h += '<div class="td-flights' + (allF.length > 1 ? " two" : "") + '">';
     allF.forEach((f, i) => {
       const lab = allF.length === 2 ? (i ? L.back : L.out) : L.flight + " " + (i + 1);
       h += '<div class="td-flight"><div class="td-fhead"><span class="td-tag">' + E(lab) + "</span><b>" + E(fmtDate(toISO(f.dt), lang)) + "</b><span>" + E((he ? heAir(f.airline) : f.airline) + (f.no ? " · " + f.no : "")) + "</span></div>";
@@ -266,6 +267,7 @@ export function renderDocs(data, lang, brand) {
       if (f.bags && f.bags.length) h += '<ul class="td-bags">' + f.bags.map(b => "<li>" + IC.bag + "<span>" + E(bagText(b, lang)) + "</span></li>").join("") + "</ul>";
       h += "</div>";
     });
+    h += "</div>";
     const c = fl.map(f => f.cond).find(Boolean);
     if (c) h += '<div class="td-cond"><h4>' + E(L.cond) + '</h4><div class="td-cgrid4">' + [[L.cDate, c.date], [L.cRoute, c.route], [L.cName, c.name], [L.cCancel, c.cancel]].map(x => "<div><span>" + E(x[0]) + "</span><b>" + E(ph(x[1], lang) || "–") + "</b></div>").join("") + "</div>" + (c.byAirline ? "<small>" + E(L.byAir) + "</small>" : "") + "</div>";
     h += "</section>";
@@ -379,6 +381,36 @@ const CSS = `
 .td-foot{padding:14px 20px;background:var(--nv);color:#fff;display:flex;flex-direction:column;gap:3px;font-size:14px}.td-foot a{color:#fff}.td-foot small{opacity:.7;font-size:12px}
 @media(max-width:560px){.td-cgrid4{grid-template-columns:1fr 1fr}.td-time{font-size:26px}.td-line{min-width:60px}}
 body.td-printing .td-sheet{max-width:none!important;border-radius:0!important;box-shadow:none!important}
+/* ---- פריסת הדפסה: מנצלת את רוחב ה-A4 כדי שהמסמך יהיה נמוך יותר והטקסט יישאר גדול ---- */
+body.td-printing .td-top{padding:8px 18px}
+body.td-printing .td-hero{padding:12px 18px 16px}
+body.td-printing .td-dest{font-size:40px;margin:2px 0 0}
+body.td-printing .td-codes{padding:10px 18px}
+body.td-printing .td-codes h3{margin-bottom:6px}
+body.td-printing .td-cgrid{grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+body.td-printing .td-code{padding:6px 10px}
+body.td-printing .td-sec{padding:10px 18px}
+body.td-printing .td-sec h3{font-size:18px;margin-bottom:6px}
+body.td-printing .td-tbl td{padding:4px 8px}
+body.td-printing .td-flights.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+body.td-printing .td-flight{margin-bottom:8px;padding:8px 12px}
+body.td-printing .td-flights.two .td-flight{margin-bottom:0}
+body.td-printing .td-flights.two{margin-bottom:8px}
+body.td-printing .td-route{margin:6px 0 4px}
+body.td-printing .td-time{font-size:26px}
+body.td-printing .td-line{min-width:60px}
+body.td-printing .td-bags{margin-top:6px;gap:3px}
+body.td-printing .td-cond{padding:8px 12px}
+body.td-printing .td-hotel{display:grid;grid-template-columns:1fr 1fr;column-gap:16px;align-items:start}
+body.td-printing .td-hotel>h3,body.td-printing .td-hotel>h2,body.td-printing .td-hotel>.td-addr,body.td-printing .td-hotel>.td-meta,body.td-printing .td-hotel>.td-terms,body.td-printing .td-hotel>.td-emerg{grid-column:1/-1}
+body.td-printing .td-stay{margin:8px 0 0;padding:8px 12px}
+body.td-printing .td-n{width:50px;height:50px}
+body.td-printing .td-room dl{grid-template-columns:1fr 1fr;gap:4px 12px}
+body.td-printing .td-room h4,body.td-printing .td-sub h4{margin:8px 0 4px}
+body.td-printing .td-terms ul,body.td-printing .td-info ul{display:block;column-count:2;column-gap:24px}
+body.td-printing .td-terms li,body.td-printing .td-info li{break-inside:avoid;margin:0 0 4px}
+body.td-printing .td-emerg{margin-top:8px;padding:6px 10px}
+body.td-printing .td-foot{padding:8px 18px}
 @media print{.td-multi .td-flight,.td-multi .td-stay,.td-multi .td-codes,.td-multi .td-cond,.td-multi .td-room,.td-multi .td-hero,.td-multi .td-foot,.td-multi .td-emerg{break-inside:avoid}}
 @media print{body.td-printing{margin:0!important;padding:0!important;border:0!important;background:#fff!important}body.td-printing #tdm{padding:0!important;overflow:visible!important}body.td-printing #tdm .box{max-width:none!important;margin:0!important;padding:0!important;background:none!important}}
 #tdm .tdl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}#tdm .tdl .on{background:var(--pri);color:var(--onpri);border-color:var(--pri)}
@@ -425,21 +457,23 @@ async function readFiles() {
   $("td_st").textContent = (ok ? "✅ נקראו " + ok + " מסמכים. בדקו את הפרטים לפני השליחה." : "") + (bad.length ? " לא זיהיתי: " + bad.join(", ") : "");
   $("td_go").disabled = false; draw(); if (ok) save();
 }
-// הדפסה על A4 ברוחב מלא – בלי שוליים לבנים רחבים.
-// המסמך מתרחב ומוקטן אוטומטית כדי להיכנס בעמוד אחד; אם הוא ארוך מדי
-// (צריך להקטין מתחת ל-70% – כבר לא נוח לקריאה) הוא ממשיך לעמוד הבא ברוחב מלא.
+// הדפסה על A4 ברוחב מלא – בלי שוליים לבנים רחבים, ותמיד בעמוד אחד.
+// המסמך מתרחב ומוקטן אוטומטית עד שהוא נכנס בדף. רק אם צריך להקטין מתחת ל-40%
+// (כבר לא קריא) הוא ממשיך לעמוד נוסף ברוחב מלא.
+// עובד גם מהכפתור וגם כשמדפיסים מתפריט הדפדפן.
+let activePrint = null;
 export function printLong(sheet) {
-  if (!sheet) return () => {};
+  if (!sheet || activePrint) return () => {};
   document.body.classList.add("td-printing");
-  const MM = 96 / 25.4, M = 5, PW = (210 - 2 * M) * MM, PH = (297 - 2 * M) * MM - 6, MIN = 0.7;
+  const MM = 96 / 25.4, M = 5, PW = (210 - 2 * M) * MM, PH = (297 - 2 * M) * MM - 8, MIN = 0.4;
   const old = sheet.getAttribute("style");
   const set = (k, v) => sheet.style.setProperty(k, v, "important");
   set("max-width", "none"); set("min-width", "0"); set("margin", "0"); set("zoom", "1"); set("box-sizing", "border-box");
   let s = 1;
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 8; i++) {
     set("width", PW / s + "px");
     const ns = Math.min(1, PH / sheet.scrollHeight);
-    if (Math.abs(ns - s) < 0.004) { s = ns; break; }
+    if (Math.abs(ns - s) < 0.003) { s = Math.min(s, ns); break; }
     s = ns;
     if (s < MIN) break;
   }
@@ -447,13 +481,22 @@ export function printLong(sheet) {
   set("width", PW / s + "px"); set("zoom", String(s));
   if (s === 1 && sheet.scrollHeight > PH) sheet.classList.add("td-multi");
   const st = document.createElement("style"); st.id = "td-page";
-  st.textContent = "@page{size:A4;margin:" + M + "mm}";
+  st.textContent = "@page{size:A4;margin:" + M + "mm}@media print{html,body{height:auto!important}.qgrid{display:block!important}}";
   document.head.appendChild(st);
-  return () => {
+  let undone = false;
+  activePrint = () => {
+    if (undone) return; undone = true; activePrint = null;
     document.body.classList.remove("td-printing"); st.remove(); sheet.classList.remove("td-multi");
     if (old == null) sheet.removeAttribute("style"); else sheet.setAttribute("style", old);
   };
+  return activePrint;
 }
+// הדפסה מתפריט הדפדפן (ולא מהכפתור) – מתאים גם אותה לעמוד אחד
+window.addEventListener("beforeprint", () => {
+  if (activePrint) return;
+  printLong(document.querySelector("#tdm.on .td-sheet") || document.querySelector("#qm.on #qsheet"));
+});
+window.addEventListener("afterprint", () => { if (activePrint) activePrint(); });
 function boot() {
   const st = document.createElement("style"); st.textContent = CSS; document.head.appendChild(st);
   const m = document.createElement("div"); m.className = "modal"; m.id = "tdm";
