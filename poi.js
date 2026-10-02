@@ -12,6 +12,7 @@
 
   const AGENT = { name: 'שמעון שוקר', brand: 'WaypointFlit', site: 'waypointflit.com' };
   const TIMEOUT = 20000;
+  const LOGO = 'data:image/png;base64,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';
 
   /* ---------- סנכרון עם הצעות מחיר ---------- */
   const QUOTE_KEYS = {
@@ -63,11 +64,14 @@
     bar: 'בר', pub: 'פאב', nightclub: 'מועדון', pharmacy: 'בית מרקחת', hospital: 'בית חולים'
   };
 
+  // שרתי המפות (Overpass) – חינמיים ולכן לפעמים עמוסים. עוברים ביניהם, מחכים ומנסים שוב.
   const OVERPASS = [
     'https://overpass-api.de/api/interpreter',
-    'https://overpass.kumi.systems/api/interpreter',
-    'https://maps.mail.ru/osm/tools/overpass/api/interpreter'
+    'https://overpass.private.coffee/api/interpreter',
+    'https://overpass.kumi.systems/api/interpreter'
   ];
+  // כמה מקומות מכל קטגוריה נכנסים לדף "הכל"
+  const GUIDE_N = { attr: 6, kids: 4, nature: 5, spa: 4, food: 6, kosher: 4, shop: 3, night: 3, health: 3 };
 
   const S = {
     opts: {}, place: null, center: null, centerLabel: '', radius: 3000,
@@ -209,20 +213,62 @@
     };
   }
 
+  /* ---- Overpass: תור (בקשה אחת בכל פעם), זיכרון ליום, ניסיון חוזר ---- */
+  let opQueue = Promise.resolve();
+  function queued(fn) { const p = opQueue.then(fn, fn); opQueue = p.catch(() => {}); return p; }
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  function cacheGet(k) { try { const v = JSON.parse(sessionStorage.getItem(k) || 'null'); return v && Date.now() - v.t < 864e5 ? v.d : null; } catch (e) { return null; } }
+  function cacheSet(k, d) { try { sessionStorage.setItem(k, JSON.stringify({ t: Date.now(), d })); } catch (e) { /* מלא – לא נורא */ } }
+  async function overpassRaw(q) {
+    const ck = 'wpoi-op:' + q, hit = cacheGet(ck);
+    if (hit) return hit;
+    return queued(async () => {
+      let err;
+      for (let round = 0; round < 2; round++) {
+        for (const u of OVERPASS) {
+          try {
+            const j = await getJSON(u, { method: 'POST', body: 'data=' + encodeURIComponent(q), headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
+            const els = j.elements || [];
+            if (!els.length && j.remark && /runtime error|timed out|out of memory|rate/i.test(j.remark)) throw new Error(j.remark);
+            cacheSet(ck, els);
+            return els;
+          } catch (e) { err = e; }
+        }
+        if (round === 0) await sleep(3000);
+      }
+      throw err;
+    });
+  }
+  const opQuery = (sels, c, radius, max) => `[out:json][timeout:25];(${sels.map(s => `nwr["name"]${s}(around:${radius},${c.lat},${c.lon});`).join('')});out center tags qt ${max};`;
+  function toList(els, c) {
+    const seen = new Set();
+    const list = els.map(toPOI).filter(p => p && !seen.has(p.name) && seen.add(p.name));
+    list.forEach(p => p.d = dist(c, p));
+    list.sort((a, b) => b.famous - a.famous || a.d - b.d);
+    return list;
+  }
   async function overpass(cat, c, radius) {
-    const q = `[out:json][timeout:25];(${cat.sel.map(s => `nwr["name"]${s}(around:${radius},${c.lat},${c.lon});`).join('')});out center tags 150;`;
-    let err;
-    for (const u of OVERPASS) {
-      try {
-        const j = await getJSON(u, { method: 'POST', body: 'data=' + encodeURIComponent(q), headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
-        const seen = new Set();
-        const list = j.elements.map(toPOI).filter(p => p && !seen.has(p.name) && seen.add(p.name));
-        list.forEach(p => p.d = dist(c, p));
-        list.sort((a, b) => b.famous - a.famous || a.d - b.d);
-        return list;
-      } catch (e) { err = e; }
-    }
-    throw err;
+    return toList(await overpassRaw(opQuery(cat.sel, c, radius, 150)), c);
+  }
+  // שיוך מקום לקטגוריה לפי התגיות שלו (כשר קודם, כדי שמסעדה כשרה תופיע תחת כשר)
+  const SEL_RE = /\["([^"]+)"(=|~)"([^"]+)"\]/g;
+  function selMatch(sel, t) {
+    const parts = [...sel.matchAll(SEL_RE)];
+    return parts.length > 0 && parts.every(([, k, op, v]) => t[k] != null && (op === '=' ? t[k] === v : new RegExp(v).test(t[k])));
+  }
+  function catOfTags(t) {
+    const order = ['kosher'].concat(CATS.map(c => c.id).filter(id => id !== 'kosher'));
+    for (const id of order) { const c = CATS.find(x => x.id === id); if (c.sel && c.sel.some(s => selMatch(s, t))) return id; }
+    return null;
+  }
+  // בקשה אחת לכל הקטגוריות יחד – בשביל כפתור "הכל"
+  async function overpassAll(c, radius) {
+    // כל קטגוריה עם תקרה משלה, כדי שמסעדות לא "יבלעו" את שאר המקומות
+    const q = '[out:json][timeout:30];' + CATS.filter(x => x.sel).map(x => `(${x.sel.map(s => `nwr["name"]${s}(around:${radius},${c.lat},${c.lon});`).join('')});out center tags qt ${x.id === 'food' ? 80 : 50};`).join('');
+    const els = await overpassRaw(q);
+    const groups = {};
+    els.forEach(e => { const id = catOfTags(e.tags || {}); if (id) (groups[id] = groups[id] || []).push(e); });
+    CATS.filter(x => x.sel).forEach(x => { S.cache[x.id + S.radius] = toList(groups[x.id] || [], c); });
   }
 
   async function weather(c, start, end) {
@@ -331,6 +377,7 @@ font-family:'Assistant',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;colo
 .wpoi-chip{flex:0 0 auto;border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:8px 14px;cursor:pointer;white-space:nowrap;min-height:40px}
 .wpoi-chip[aria-pressed="true"]{background:var(--n);border-color:var(--n);color:#fff}
 .wpoi-chip.sel{border-color:var(--o)}
+.wpoi-chip.all{background:var(--o);border-color:var(--o);color:#fff;font-weight:700}
 .wpoi-chip small{opacity:.7;margin-inline-start:4px}
 .wpoi-tools{display:flex;gap:8px;padding:10px 16px;flex-wrap:wrap;align-items:center}
 .wpoi-tools input{flex:1;min-width:160px;border:1.5px solid var(--line);border-radius:10px;padding:9px 12px;background:var(--card)}
@@ -412,7 +459,7 @@ font-family:'Assistant',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;colo
     $('.wpoi-search').onsubmit = e => { e.preventDefault(); run(); };
     $('#wpoi-copy').onclick = copyMsg;
     $('#wpoi-send').onclick = sendWA;
-    $('#wpoi-cats').onclick = e => { const b = e.target.closest('[data-cat]'); if (b) loadCat(b.dataset.cat); };
+    $('#wpoi-cats').onclick = e => { const b = e.target.closest('[data-cat]'); if (!b) return; if (b.dataset.cat === 'all') makeGuide(); else loadCat(b.dataset.cat); };
     $('#wpoi-body').addEventListener('change', onBodyChange);
     $('#wpoi-body').addEventListener('input', onBodyInput);
     $('#wpoi-body').addEventListener('click', onBodyClick);
@@ -427,7 +474,7 @@ font-family:'Assistant',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;colo
       const n = S.cache[c.id + S.radius];
       return `<button type="button" class="wpoi-chip" data-cat="${c.id}" aria-pressed="${S.cat === c.id}">${c.icon} ${c.label}${n ? `<small>${n.length}</small>` : ''}</button>`;
     }).join('');
-    $('#wpoi-cats').innerHTML = chips + `<button type="button" class="wpoi-chip sel" data-cat="sel" aria-pressed="${S.cat === 'sel'}">✔ נבחרו והודעה<small>${S.selected.size}</small></button>`;
+    $('#wpoi-cats').innerHTML = `<button type="button" class="wpoi-chip all" data-cat="all">📄 הכל – דף ללקוח</button>` + chips + `<button type="button" class="wpoi-chip sel" data-cat="sel" aria-pressed="${S.cat === 'sel'}">✔ נבחרו והודעה<small>${S.selected.size}</small></button>`;
   }
 
   function renderHero() {
@@ -497,7 +544,7 @@ ${wx ? `<p class="wpoi-wx-l">מזג אוויר (${esc(wx.label)}): ${esc(wx.text
         else toast('המלון לא נמצא במפה, החיפוש יהיה סביב מרכז היעד');
       }
       renderHero();
-      loadFacts();
+      S.factsP = loadFacts();
       loadCat(S.cat === 'sel' ? 'wiki' : S.cat);
     } catch (e) {
       setBody('<div class="wpoi-msg err">שירות המפות לא זמין כרגע. בדקו חיבור לאינטרנט ונסו שוב בעוד רגע.</div>');
@@ -516,7 +563,7 @@ ${wx ? `<p class="wpoi-wx-l">מזג אוויר (${esc(wx.label)}): ${esc(wx.text
       try {
         S.cache[key] = id === 'wiki' ? await wikiNearby(S.center, S.radius) : await overpass(c, S.center, S.radius);
       } catch (e) {
-        if (S.cat === id) setBody(`<div class="wpoi-msg err">החיפוש נכשל (השרת עמוס). <button type="button" class="wpoi-btn" data-retry="${id}">נסה שוב</button></div>`);
+        if (S.cat === id) setBody(`<div class="wpoi-msg err">שרת המפות החינמי עמוס כרגע ולא החזיר תשובה. נסו שוב בעוד דקה, או הקטינו את הרדיוס למעלה.<br><button type="button" class="wpoi-btn" data-retry="${id}" style="margin-top:10px">נסה שוב</button></div>`);
         return;
       }
       if (S.cat !== id) return;
@@ -754,6 +801,149 @@ ${wx ? `<p class="wpoi-wx-l">מזג אוויר (${esc(wx.label)}): ${esc(wx.text
       S.opts.onSave({ message: currentMsg(), places: [...S.selected.values()], destination: S.place && S.place.name });
       toast('נשמר בכרטיס הלקוח ✔');
     }
+  }
+
+
+  /* ---------- כפתור "הכל": דף מסודר ללקוח על המקום והסביבה ---------- */
+  function guideItems() {
+    const out = [];
+    const hl = (S.cache['wiki' + S.radius] || []).filter(x => x.desc || x.img).slice(0, 6);
+    if (hl.length) out.push({ id: 'wiki', label: 'הכי שווה לראות', icon: '⭐', list: hl });
+    CATS.filter(c => c.sel).forEach(c => {
+      const used = new Set(out.flatMap(g => g.list.map(x => x.name)));
+      const list = (S.cache[c.id + S.radius] || []).filter(x => !used.has(x.name)).slice(0, GUIDE_N[c.id] || 4);
+      if (list.length) out.push({ id: c.id, label: c.label, icon: c.icon, list });
+    });
+    return out;
+  }
+  function guideText(groups) {
+    const name = ($('#wpoi-name') ? $('#wpoi-name').value : S.opts.customer || '').trim();
+    const f = S.facts, { start, end } = S.opts, place = S.place ? S.place.name : '';
+    const L = [`שלום${name ? ' ' + firstName(name) : ''} 👋`, `הכנתי לך מדריך קצר ל${place} ${f.flag || ''}`.trim()];
+    if (start) L.push(`🗓️ ${heDate(start)}${end ? '–' + heDate(end) : ''}`);
+    const info = [];
+    if (f.wx) info.push(`🌤️ *מזג אוויר:* ${f.wx.text}`);
+    if (f.cur) info.push(`💶 *מטבע:* ${f.cur}`);
+    if (f.time) info.push(`🕒 *שעון:* ${f.time}`);
+    if (f.hol && f.hol !== 'אין') info.push(`📅 *חגים מקומיים:* ${f.hol}`);
+    if (info.length) L.push('', ...info);
+    groups.forEach(g => {
+      L.push('', `*${g.icon} ${g.label}:*`);
+      g.list.slice(0, g.id === 'wiki' ? 5 : 3).forEach(p => L.push(`▫️ ${p.name}${p.type ? ' – ' + p.type : ''}`, mapLink(p)));
+    });
+    L.push('', 'נסיעה טובה! ✈️', `${AGENT.name} | ${AGENT.brand}`, AGENT.site);
+    return L.join('\n');
+  }
+  function guideHTML(groups, partial) {
+    const p = S.place, f = S.facts, { start, end } = S.opts;
+    const name = ($('#wpoi-name') ? $('#wpoi-name').value : S.opts.customer || '').trim();
+    const dates = start ? `${heDate(start)}${end ? ' – ' + heDate(end) : ''}` : '';
+    const phone = waPhone($('#wpoi-phone') ? $('#wpoi-phone').value : S.opts.phone);
+    const wa = `https://wa.me/${phone}?text=${encodeURIComponent(guideText(groups))}`;
+    const facts = [['מזג אוויר', f.wx ? f.wx.text : ''], ['מטבע', f.cur], ['הפרש שעות', f.time], ['שפה', f.lang], ['נהיגה', f.drive], ['חגים בזמן הטיול', start && f.hol && f.hol !== 'אין' ? f.hol : '']].filter(x => x[1]);
+    const item = (x, icon) => `<li class="g-it">${x.img ? `<span class="g-th" style="background-image:url('${esc(x.img)}')"></span>` : `<span class="g-ic">${icon}</span>`}<div><b>${esc(x.name)}</b>${x.alt ? ` <small dir="auto">${esc(x.alt)}</small>` : ''}<span class="g-meta">${[x.type, x.d != null ? fmtDist(x.d) + (S.centerLabel !== (p && p.name) ? ' מהמלון' : ' מהמרכז') : ''].filter(Boolean).map(esc).join('   ')}</span>${x.desc ? `<p>${esc(x.desc)}</p>` : ''}<span class="g-links"><a href="${mapLink(x)}" target="_blank" rel="noopener">מפה</a><a href="${wazeLink(x)}" target="_blank" rel="noopener">Waze</a>${x.url ? `<a href="${esc(x.url)}" target="_blank" rel="noopener">${esc(x.urlLabel || 'אתר')}</a>` : ''}</span></div></li>`;
+    return `<!doctype html><html lang="he" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>מדריך ${esc(p.name)}${name ? ' – ' + esc(name) : ''}</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;700&family=Secular+One&display=swap">
+<style>
+:root{--n:#13294b;--o:#f07031;--o2:#fde9dd;--sky:#e8f2fa;--sea:#1f6f9f;--ink:#13294b;--mut:#5d7393;--line:#dbe6f1}
+*{box-sizing:border-box}body{margin:0;background:#eef2f8;color:var(--ink);font:16px/1.55 Heebo,Arial,sans-serif}
+.g-bar{position:sticky;top:0;z-index:2;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:10px;background:#eef2f8;border-bottom:1px solid var(--line)}
+.g-bar button,.g-bar a{font:700 15px Heebo,sans-serif;border:0;border-radius:12px;padding:11px 16px;cursor:pointer;text-decoration:none;color:#fff;background:var(--n)}
+.g-bar #g-pdf{background:var(--o)}.g-bar a{background:#1FA855}.g-bar button:disabled{opacity:.6}
+.g{max-width:794px;margin:0 auto;background:#fff;overflow:hidden}
+.g.pdf{width:794px;max-width:none}
+.g-top{display:flex;justify-content:space-between;align-items:center;padding:12px 26px;background:var(--n);color:#fff}
+.g-brand{display:flex;align-items:center;gap:10px;font-family:"Secular One",Heebo,sans-serif;font-size:20px}.g-brand img{width:40px;height:auto;display:block}
+.g-top small{opacity:.8;font-size:13px}
+.g-hero{position:relative;padding:26px 26px 44px;background:linear-gradient(180deg,#13294b 0%,#1f6f9f 62%,#f2a26b 100%);color:#fff;overflow:hidden}
+.g-hero:after{content:"";position:absolute;left:-10%;right:-10%;bottom:-40px;height:70px;background:#fff;border-radius:50% 50% 0 0/100% 100% 0 0}
+.g-for{margin:0;font-size:15px;opacity:.92}
+.g-hero h1{font:400 50px/1.05 "Secular One",Heebo,sans-serif;margin:8px 0 4px}
+.g-sub{margin:0;font-size:15px;opacity:.92}
+.g-sum{display:flex;gap:16px;align-items:flex-start;padding:4px 26px 18px}
+.g-sum p{margin:0;line-height:1.7;font-size:15px;color:#2a4366}
+.g-th{width:64px;height:64px;border-radius:12px;flex:none;background:var(--sky) center/cover no-repeat}.g-th.big{width:120px;height:120px;border-radius:16px}
+.g-facts{display:grid;grid-template-columns:repeat(3,1fr);margin:0 26px 14px;border:1.5px solid var(--line);border-radius:14px}
+.g-facts div{padding:10px 14px;border-inline-start:1.5px dashed var(--line);border-top:1.5px dashed var(--line)}
+.g-facts div:nth-child(3n+1){border-inline-start:0}.g-facts div:nth-child(-n+3){border-top:0}
+.g-facts span{display:block;font-size:12px;color:var(--mut)}.g-facts b{font-size:15px;font-weight:700}
+.g-wx{display:flex;gap:6px;flex-wrap:wrap;padding:0 26px 8px}
+.g-wx div{border:1px solid var(--line);border-radius:10px;padding:5px 9px;text-align:center;font-size:13px;min-width:62px}.g-wx b{display:block;font-size:18px}
+section{padding:4px 26px 8px}
+section h2{display:flex;align-items:center;gap:8px;font:400 22px "Secular One",Heebo,sans-serif;margin:14px 0 10px;padding-bottom:6px;border-bottom:2px dashed var(--line)}
+section h2:after{content:"";flex:1}
+ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g-it{display:flex;gap:12px;align-items:flex-start;border:1.5px solid var(--line);border-radius:14px;padding:10px;break-inside:avoid;page-break-inside:avoid;border-inline-start:4px solid var(--o)}
+.g-ic{width:64px;height:64px;border-radius:12px;flex:none;background:var(--o2);display:flex;align-items:center;justify-content:center;font-size:26px}
+.g-it b{font-size:16px}.g-it small{color:var(--mut)}
+.g-meta{display:block;font-size:13px;color:var(--mut)}
+.g-it p{margin:4px 0 0;font-size:13.5px;color:#3a4f70}
+.g-links{display:flex;gap:14px;margin-top:5px;font-size:14px}.g-links a{color:var(--sea);font-weight:700;text-decoration:underline}
+.g-warn{margin:6px 26px 0;padding:10px 14px;border-radius:12px;background:#fdecea;color:#8a1c14;font-size:14px}
+.g-foot{margin-top:18px;padding:16px 26px;background:var(--n);color:#fff;font-size:14px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.g-foot a{color:#ffb489}.g-foot small{flex-basis:100%;opacity:.7;font-size:12px}
+@media(max-width:600px){.g:not(.pdf) ul{grid-template-columns:1fr}.g:not(.pdf) .g-facts{grid-template-columns:1fr 1fr}.g:not(.pdf) .g-facts div{border:0;border-top:1.5px dashed var(--line)}.g:not(.pdf) .g-hero h1{font-size:40px}}
+@media print{body{background:#fff}.g-bar{display:none}.g{max-width:none}*{-webkit-print-color-adjust:exact;print-color-adjust:exact}section h2{break-after:avoid}}
+</style></head><body><div>
+</div><div class="g-bar"><button id="g-pdf" type="button">📄 הורדת PDF מעוצב</button><button type="button" onclick="print()">🖨️ הדפסה</button><a href="${esc(wa)}" target="_blank" rel="noopener">💬 סיכום בוואטסאפ</a></div>
+<div class="g" id="g-doc">
+<div class="g-top"><span class="g-brand"><img src="${LOGO}" alt="">${esc(AGENT.brand)}</span><small>מדריך יעד אישי</small></div>
+<div class="g-hero">${name ? `<p class="g-for">הוכן במיוחד עבור <b>${esc(name)}</b></p>` : ''}<h1>${esc(p.name)} ${f.flag || ''}</h1><p class="g-sub">${[p.country, dates, S.centerLabel !== p.name ? 'סביב ' + S.centerLabel : ''].filter(Boolean).map(esc).join('   |   ')}</p></div>
+${f.sum ? `<div class="g-sum">${f.sum.img ? `<span class="g-th big" style="background-image:url('${esc(f.sum.img)}')"></span>` : ''}<p>${esc(f.sum.text)}</p></div>` : ''}
+${facts.length ? `<div class="g-facts">${facts.map(x => `<div><span>${x[0]}</span><b>${esc(x[1])}</b></div>`).join('')}</div>` : ''}
+${f.wx && f.wx.days ? `<div class="g-wx">${f.wx.days.map(d => `<div>${heDate(d.t)}<b>${wxIcon(d.code)}</b>${d.max}°/${d.min}°</div>`).join('')}</div>` : ''}
+${partial ? '<p class="g-warn">שרת המפות היה עמוס, ולכן חלק מהקטגוריות חסרות בדף. אפשר לסגור את הדף וללחוץ שוב על "הכל" בעוד דקה.</p>' : ''}
+${groups.map(g => `<section><h2>${g.icon} ${esc(g.label)}</h2><ul>${g.list.map(x => item(x, g.icon)).join('')}</ul></section>`).join('')}
+<div class="g-foot"><span>${esc(AGENT.name)} | ${esc(AGENT.brand)}</span><a href="https://${esc(AGENT.site)}" target="_blank" rel="noopener">${esc(AGENT.site)}</a><small>המידע נאסף ממקורות פתוחים (OpenStreetMap וויקיפדיה). שעות פתיחה ומחירים עשויים להשתנות – כדאי לבדוק לפני ההגעה.</small></div>
+</div>
+<script>
+(function(){
+  var FILE = ${JSON.stringify(('מדריך ' + p.name + (name ? ' - ' + name : '')).replace(/[\\/:*?"<>|]/g, '') + '.pdf')};
+  function load(src){return new Promise(function(ok,no){var s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=no;document.head.appendChild(s);});}
+  var b=document.getElementById('g-pdf');
+  b.onclick=async function(){
+    var lab=b.textContent;b.disabled=true;b.textContent='מכין PDF…';
+    var doc=document.getElementById('g-doc');
+    try{
+      if(!window.html2pdf) await load('https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js');
+      if(document.fonts&&document.fonts.ready) await document.fonts.ready;
+      doc.classList.add('pdf');
+      await html2pdf().set({
+        margin:0, filename:FILE,
+        image:{type:'jpeg',quality:0.95},
+        html2canvas:{scale:2,useCORS:true,windowWidth:820,backgroundColor:'#ffffff'},
+        jsPDF:{unit:'px',format:[794,1123],orientation:'portrait',hotfixes:['px_scaling']},
+        pagebreak:{mode:['css','legacy'],avoid:['.g-it','.g-facts','.g-sum','section h2']},
+        enableLinks:true
+      }).from(doc).save();
+      b.textContent='✔ ה-PDF ירד';
+    }catch(e){ b.textContent='לא הצלחתי ליצור PDF – נסו "הדפסה" ושמירה כ-PDF'; }
+    doc.classList.remove('pdf');
+    setTimeout(function(){b.disabled=false;b.textContent=lab;},3500);
+  };
+})();
+</script>
+</body></html>`;
+  }
+  async function makeGuide() {
+    if (!S.center || !S.place) { toast('קודם מחפשים יעד ולוחצים "חפש מוקדי עניין"'); return; }
+    // פותחים את החלון מיד (אחרת הדפדפן חוסם), וממלאים אחרי שהמידע מגיע
+    const w = window.open('', '_blank');
+    if (!w) { toast('הדפדפן חסם חלון חדש. אפשרו חלונות קופצים לאתר ונסו שוב'); return; }
+    w.document.write('<!doctype html><html lang="he" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>מכין מדריך…</title><body style="font-family:system-ui,Arial;padding:60px 20px;text-align:center;color:#16264A;font-size:18px">✈️ מכין דף מסודר ללקוח…<br><small style="color:#5F6982">זה לוקח בדרך כלל 10–30 שניות</small></body></html>');
+    w.document.close();
+    toast('מכין דף ללקוח…');
+    let partial = false;
+    const jobs = [];
+    if (!S.cache['wiki' + S.radius]) jobs.push(wikiNearby(S.center, S.radius).then(l => { S.cache['wiki' + S.radius] = l; }).catch(() => {}));
+    const need = CATS.filter(c => c.sel && !S.cache[c.id + S.radius]);
+    if (need.length) jobs.push(overpassAll(S.center, S.radius).catch(() => { partial = true; }));
+    if (S.factsP) jobs.push(S.factsP.catch(() => {}));
+    await Promise.all(jobs);
+    renderCats();
+    if (w.closed) return;
+    w.document.open(); w.document.write(guideHTML(guideItems(), partial)); w.document.close();
   }
 
   /* ---------- per-customer memory (browser only) ---------- */
