@@ -378,7 +378,8 @@ const CSS = `
 .td-small h4{font-size:13px;color:var(--mut);margin-bottom:4px}.td-small p{margin:0;font-size:12px;color:var(--mut);line-height:1.6}
 .td-foot{padding:14px 20px;background:var(--nv);color:#fff;display:flex;flex-direction:column;gap:3px;font-size:14px}.td-foot a{color:#fff}.td-foot small{opacity:.7;font-size:12px}
 @media(max-width:560px){.td-cgrid4{grid-template-columns:1fr 1fr}.td-time{font-size:26px}.td-line{min-width:60px}}
-body.td-printing .td-sheet{width:760px!important;max-width:none!important;border-radius:0!important;box-shadow:none!important}
+body.td-printing .td-sheet{max-width:none!important;border-radius:0!important;box-shadow:none!important}
+@media print{.td-multi .td-flight,.td-multi .td-stay,.td-multi .td-codes,.td-multi .td-cond,.td-multi .td-room,.td-multi .td-hero,.td-multi .td-foot,.td-multi .td-emerg{break-inside:avoid}}
 @media print{body.td-printing{margin:0!important;padding:0!important;border:0!important;background:#fff!important}body.td-printing #tdm{padding:0!important;overflow:visible!important}body.td-printing #tdm .box{max-width:none!important;margin:0!important;padding:0!important;background:none!important}}
 #tdm .tdl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0}#tdm .tdl .on{background:var(--pri);color:var(--onpri);border-color:var(--pri)}
 `;
@@ -424,15 +425,34 @@ async function readFiles() {
   $("td_st").textContent = (ok ? "✅ נקראו " + ok + " מסמכים. בדקו את הפרטים לפני השליחה." : "") + (bad.length ? " לא זיהיתי: " + bad.join(", ") : "");
   $("td_go").disabled = false; draw(); if (ok) save();
 }
-// עמוד אחד ארוך בגובה המסמך, בלי חיתוכים – בדיוק כמו שהוא נראה במסך
+// הדפסה על A4 ברוחב מלא – בלי שוליים לבנים רחבים.
+// המסמך מתרחב ומוקטן אוטומטית כדי להיכנס בעמוד אחד; אם הוא ארוך מדי
+// (צריך להקטין מתחת ל-70% – כבר לא נוח לקריאה) הוא ממשיך לעמוד הבא ברוחב מלא.
 export function printLong(sheet) {
   if (!sheet) return () => {};
   document.body.classList.add("td-printing");
-  const mm = Math.ceil(sheet.getBoundingClientRect().height * 25.4 / 96) + 2;
+  const MM = 96 / 25.4, M = 5, PW = (210 - 2 * M) * MM, PH = (297 - 2 * M) * MM - 6, MIN = 0.7;
+  const old = sheet.getAttribute("style");
+  const set = (k, v) => sheet.style.setProperty(k, v, "important");
+  set("max-width", "none"); set("min-width", "0"); set("margin", "0"); set("zoom", "1"); set("box-sizing", "border-box");
+  let s = 1;
+  for (let i = 0; i < 6; i++) {
+    set("width", PW / s + "px");
+    const ns = Math.min(1, PH / sheet.scrollHeight);
+    if (Math.abs(ns - s) < 0.004) { s = ns; break; }
+    s = ns;
+    if (s < MIN) break;
+  }
+  if (s < MIN) s = 1;
+  set("width", PW / s + "px"); set("zoom", String(s));
+  if (s === 1 && sheet.scrollHeight > PH) sheet.classList.add("td-multi");
   const st = document.createElement("style"); st.id = "td-page";
-  st.textContent = "@page{size:201mm " + mm + "mm;margin:0}";
+  st.textContent = "@page{size:A4;margin:" + M + "mm}";
   document.head.appendChild(st);
-  return () => { document.body.classList.remove("td-printing"); st.remove(); };
+  return () => {
+    document.body.classList.remove("td-printing"); st.remove(); sheet.classList.remove("td-multi");
+    if (old == null) sheet.removeAttribute("style"); else sheet.setAttribute("style", old);
+  };
 }
 function boot() {
   const st = document.createElement("style"); st.textContent = CSS; document.head.appendChild(st);

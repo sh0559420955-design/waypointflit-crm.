@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>WaypointFlit CRM</title>
 <script type="module" src="travel-docs.js"></script>
+<script src="poi.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600;800&family=Secular+One&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#eef1f7;--card:#fff;--ink:#102040;--mut:#5d6a85;--line:#d6dcea;--pri:#d8541a;--onpri:#fff;--danger:#b4423a}
@@ -22,6 +23,7 @@ h1{font-size:26px;margin:0;display:flex;align-items:center;gap:10px}
 label{display:flex;flex-direction:column;font-size:14px;color:var(--mut);gap:4px}
 input,select,textarea{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%}
 textarea{min-height:60px;resize:vertical}
+.poib{display:block;width:100%;font-size:18px;padding:14px;margin:10px 0;border:2px solid #f07031;color:#13294b}
 .btn{font:inherit;font-weight:700;border:0;border-radius:8px;padding:10px 16px;cursor:pointer;background:var(--pri);color:var(--onpri);text-decoration:none;display:inline-block}
 .btn.sec{background:var(--bg);color:var(--ink);border:1px solid var(--line);font-weight:600}
 .btn:disabled{opacity:.5;cursor:default}
@@ -208,6 +210,7 @@ summary{cursor:pointer;color:var(--pri);font-weight:600;font-size:14px}
 <span class="stat" id="ps_st"></span>
 </details>
 <label class="qmsgl">הודעת וואטסאפ (אפשר לערוך)<textarea id="q_msg"></textarea></label>
+<button class="btn sec poib noprint" type="button" data-poi data-poi-attach data-customer-field="#q_name" data-phone-field="#q_phone" data-destination-field="#q_dest" data-hotel-field="#q_hotel" data-start-field="#q_d1" data-end-field="#q_d2">📍 מוקדי עניין</button>
 <div class="acts"><a class="btn" id="qwa" href="#" target="_blank" rel="noopener">&#1513;&#1500;&#1497;&#1495;&#1492; &#1489;&#1493;&#1493;&#1488;&#1496;&#1505;&#1488;&#1508;</a><button class="btn sec" id="qprint" type="button">&#1492;&#1491;&#1508;&#1505;&#1492; / PDF</button></div>
 </div>
 <article class="sheet" id="qsheet">
@@ -281,6 +284,7 @@ import { pdfToText, parseQuote, buildMsg } from "./pdf-quote.js";
 import { startTracking } from "./session-tracker.js";
 import { TPL } from "./templates.js";
 import { SEED } from "./seed.js";
+import { printLong } from "./travel-docs.js";
 import { collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, getDoc, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const $ = id => document.getElementById(id);
@@ -370,6 +374,7 @@ function render() {
     (canWrite&&fuPlan(l)?'<label class="fu" title="מתי לשלוח את הפולו אפ הבא">⏰ פולו אפ '+(fuPlan(l).i+1)+' <input type="date" data-act="fun" value="'+dayStr(fuPlan(l).dueT)+'"></label>':"")+
     (canWrite?'<button class="link" data-act="intake" type="button">\u05e9\u05d0\u05dc\u05d5\u05df \u05dc\u05e7\u05d5\u05d7</button>':"")+
     (canWrite?'<button class="link" data-act="quote" type="button">\u05d4\u05e6\u05e2\u05ea \u05de\u05d7\u05d9\u05e8</button>':"")+
+    '<button class="link" data-act="poi" type="button">📍 מוקדי עניין</button>'+
     (isAdmin?'<button class="danger" data-act="del" type="button">\u05de\u05d7\u05d9\u05e7\u05d4</button>':"")+
     "</div></article>"
   ).join("") : '<p class="empty">\u05d0\u05d9\u05df \u05e4\u05e0\u05d9\u05d5\u05ea \u05dc\u05d4\u05e6\u05d2\u05d4.</p>';
@@ -438,6 +443,7 @@ $("list").addEventListener("click", async e => {
   if (act === "own" && me.uid) { try { await updateDoc(doc(db,"leads",id), { owner: l.owner===me.uid?null:me.uid, ownerName: l.owner===me.uid?null:(me.name||me.email) }); } catch (x) { err(); } }
   if (act === "fup") { const fi = fuInfo(l); if (fi) openMsg(l, "פולו אפ "+(fi.i+1), fuMsg(l, fi.i)); }
   if (act === "quote") qopen(id);
+  if (act === "poi" && window.WaypointPOI) { const l = leads.find(x=>x.id===id); if (l) { const q = l.quote||{}; WaypointPOI.open({ customer:q.name||l.name||"", phone:q.phone||l.phone||"", destination:q.dest||(l.intake&&l.intake.dest)||l.interest||"", start:q.d1||(l.intake&&l.intake.d1)||"", end:q.d2||(l.intake&&l.intake.d2)||"", hotel:q.hotel||"", customerId:id }); } }
   if (act === "intake") ivopen(id);
   if (act === "del") { if (!el.dataset.armed) { el.dataset.armed="1"; el.textContent="\u05dc\u05de\u05d7\u05d5\u05e7?"; return; } try { await deleteDoc(doc(db,"leads",id)); } catch (x) { err(); } }
   if (act === "clroff") { if (!el.dataset.armed) { el.dataset.armed="1"; el.textContent="\u05dc\u05de\u05d7\u05d5\u05e7?"; return; } try { await updateDoc(doc(db,"leads",id), { offer: null, quote: null }); } catch (x) { err(); } }
@@ -536,7 +542,16 @@ function ivsave() {
 IVF.forEach(k => $("iv_"+k).addEventListener("input", ivsave));
 $("ivclose").addEventListener("click", ()=>{ ivid=null; $("ivm").classList.remove("on"); });
 $("qclose").addEventListener("click", ()=>{ $("qm").classList.remove("on"); qid=null; });
-$("qprint").addEventListener("click", ()=>{ try { window.print(); } catch(e){} });
+$("qprint").addEventListener("click", ()=>{ const done = printLong($("qsheet")); window.addEventListener("afterprint", done, { once:true }); try { window.print(); } catch(e){ done(); } });
+// ----- מוקדי עניין: צירוף המקומות שנבחרו להודעת ההצעה
+document.addEventListener("poi:attach", e => {
+  if (!$("qm").classList.contains("on")) return;
+  const ta = $("q_msg");
+  let t = (ta.value.trim() || ta.placeholder || "").replace(/\*📍 מוקדי עניין[^\n]*(?:\n.+)*/, "").replace(/\n{3,}/g, "\n\n").trim();
+  const lines = t.split("\n"), i = lines.findIndex(x => /נשמח לעמוד/.test(x));
+  if (i >= 0) lines.splice(i, 0, e.detail.text, ""); else lines.push("", e.detail.text);
+  ta.value = lines.join("\n").replace(/\n{3,}/g, "\n\n"); ta.dispatchEvent(new Event("input"));
+});
 $("qwa").addEventListener("click", () => { qsave(Date.now()).catch(()=>{}); });
 async function qsave(T) {
   if (!qid) return;
