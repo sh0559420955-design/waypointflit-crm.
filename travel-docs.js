@@ -312,6 +312,49 @@ export function renderDocs(data, lang, brand) {
   return h + "</article>";
 }
 
+// ===================== סנכרון מסמכי נסיעה → הצעת מחיר =====================
+// היעד נקבע לפי המלון של הלקוח (עיר + מדינה). אם אין מלון – לפי עיר הנחיתה.
+// המחיר, הטקסט החופשי וההערות שבהצעה לא נדרסים; רק יעד, תאריכים, מלון והרכב נוסעים.
+const COUNTRY_HE = { Bulgaria:"בולגריה",Greece:"יוון",Cyprus:"קפריסין",Italy:"איטליה",Spain:"ספרד",Portugal:"פורטוגל",France:"צרפת",Germany:"גרמניה",Austria:"אוסטריה",Switzerland:"שווייץ",Hungary:"הונגריה",Czechia:"צ'כיה","Czech Republic":"צ'כיה",Poland:"פולין",Romania:"רומניה",Serbia:"סרביה",Croatia:"קרואטיה",Montenegro:"מונטנגרו",Albania:"אלבניה",Slovenia:"סלובניה",Slovakia:"סלובקיה",Georgia:"גאורגיה",Armenia:"ארמניה",Azerbaijan:"אזרבייג'ן",Turkey:"טורקיה","Türkiye":"טורקיה",Netherlands:"הולנד","United Kingdom":"אנגליה",UK:"אנגליה",England:"אנגליה","United Arab Emirates":"איחוד האמירויות",UAE:"איחוד האמירויות",Thailand:"תאילנד",Malta:"מלטה",Morocco:"מרוקו","United States":"ארה\"ב",USA:"ארה\"ב" };
+export function docsToQuote(lead) {
+  const td = lead && lead.travelDocs; if (!td || !td.items || !td.items.length) return null;
+  const fl = td.items.filter(x => x.kind === "flight"), ho = td.items.filter(x => x.kind === "hotel");
+  const allF = fl.flatMap(f => f.flights || []), h = ho[0] || {};
+  const arrCity = allF.length ? cityName(allF[0].to, "he") : "";
+  const hcRaw = String(h.city || "").trim();
+  let city = hcRaw ? cityHe(hcRaw) : "";
+  if (city && arrCity && !/[א-ת]/.test(city) && plain(allF[0].to).toLowerCase() === hcRaw.toLowerCase()) city = arrCity;
+  const country = h.country ? (COUNTRY_HE[String(h.country).trim()] || String(h.country).trim()) : "";
+  const dest = city ? city + (country ? ", " + country : "") : arrCity;
+  const d1 = h.ci ? toISO(h.ci) : allF.length ? toISO(allF[0].dt) : "";
+  const d2 = h.co ? toISO(h.co) : allF.length > 1 ? toISO(allF[allF.length - 1].dt) : "";
+  const pax = fl.length ? fl[0].pax || [] : [];
+  const ad = pax.filter(p => /ADT|YTH/.test(p.type)).length, ch = pax.filter(p => /CHD|CNN|INF/.test(p.type)).length;
+  const q = Object.assign({}, lead.quote || {});
+  if (dest) q.dest = dest;
+  if (d1) q.d1 = d1;
+  if (d2) q.d2 = d2;
+  if (h.name) q.hotel = h.name;
+  if (ad || ch) { q.ad = String(ad); q.ch = String(ch); }
+  if (!q.name) q.name = lead.name || "";
+  if (!q.phone) q.phone = lead.phone || "";
+  if (!q.inc) {
+    const inc = [];
+    if (allF.length) inc.push(allF.length > 1 ? "טיסות הלוך וחזור" : "טיסה");
+    if (h.name) { const b = h.rooms && h.rooms[0] && h.rooms[0].board; inc.push("לינה במלון " + h.name + (h.nights ? " – " + h.nights + " לילות" : "") + (b ? ", " + b : "")); }
+    q.inc = inc.join("\n");
+  }
+  q.docsT = td.t || Date.now();
+  const n = (+q.ad || 0) + (+q.ch || 0), pr = +q.pr || 0;
+  const dl = d => d ? new Date(d + "T12:00:00").toLocaleDateString("he-IL") : "";
+  const dates = q.d1 && q.d2 ? dl(q.d1) + " \u2013 " + dl(q.d2) : (dl(q.d1) || dl(q.d2) || "\u05d9\u05e2\u05d5\u05d3\u05db\u05df");
+  const offer = Object.assign({}, lead.offer || {}, { dates, hotel: q.hotel || "", pax: n });
+  if (pr) offer.price = n * pr;
+  return { quote: q, offer };
+}
+// האם מסמכי הנסיעה חדשים יותר ממה שכבר סונכרן להצעה
+export const docsNeedSync = l => !!(l && l.travelDocs && l.travelDocs.items && l.travelDocs.items.length && (l.travelDocs.t || 0) > ((l.quote && l.quote.docsT) || 0));
+
 export function waSummary(data, lang, first) {
   const he = lang === "he", L = [];
   const fl = data.items.filter(x => x.kind === "flight"), ho = data.items.filter(x => x.kind === "hotel");
@@ -440,7 +483,12 @@ function draw() {
 }
 async function save() {
   if (!cur.id) return;
-  try { const f = await FB(); await f.updateDoc(f.doc(f.db, "leads", cur.id), { travelDocs: JSON.parse(JSON.stringify(Object.assign({}, cur.data, { lang: cur.lang, t: Date.now() }))) }); }
+  try {
+    const f = await FB(), td = JSON.parse(JSON.stringify(Object.assign({}, cur.data, { lang: cur.lang, t: Date.now() })));
+    const p = { travelDocs: td }, sync = docsToQuote(Object.assign({}, cur.lead || {}, { travelDocs: td }));
+    if (sync) { p.quote = sync.quote; p.offer = sync.offer; if (cur.lead) { cur.lead.quote = sync.quote; cur.lead.offer = sync.offer; } }
+    await f.updateDoc(f.doc(f.db, "leads", cur.id), p);
+  }
   catch (e) { $("td_st").textContent += " (לא נשמר בתיק הלקוח – בדקו הרשאות)"; }
 }
 async function openFor(id) {

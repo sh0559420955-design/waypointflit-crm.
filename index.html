@@ -364,7 +364,7 @@ import { pdfToText, parseQuote, buildMsg } from "./pdf-quote.js";
 import { startTracking } from "./session-tracker.js";
 import { TPL } from "./templates.js";
 import { SEED } from "./seed.js";
-import { printLong } from "./travel-docs.js";
+import { printLong, docsToQuote, docsNeedSync } from "./travel-docs.js";
 import { collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy, getDoc, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
 const $ = id => document.getElementById(id);
@@ -489,7 +489,20 @@ async function fillOwnerNames() {
 onSnapshot(query(col, orderBy("created","desc")), snap => {
   leads = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   render();
+  syncDocs();
 }, e => err());
+
+// ----- סנכרון: לקוח שיש לו מסמכי נסיעה מקבל הצעת מחיר מעודכנת (יעד לפי המלון, תאריכים, מלון, נוסעים)
+const syncing = new Set();
+function syncDocs() {
+  if (!canWrite) return;
+  leads.filter(docsNeedSync).forEach(l => {
+    if (syncing.has(l.id)) return;
+    const p = docsToQuote(l); if (!p) return;
+    syncing.add(l.id);
+    updateDoc(doc(db,"leads",l.id), p).catch(()=>{}).finally(()=>syncing.delete(l.id));
+  });
+}
 
 $("f").addEventListener("submit", async e => {
   e.preventDefault();
