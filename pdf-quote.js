@@ -19,6 +19,11 @@ export async function pdfToText(file) {
 const AIR = { "Arkia":"ארקיע","El Al":"אל על","EL AL":"אל על","Israir":"ישראייר","Aegean":"אג'יאן","Wizz":"וויז אייר","Ryanair":"ריינאייר","Blue Bird":"בלו בירד","Bluebird":"בלו בירד","Sky Express":"סקיי אקספרס","Bulgaria Air":"בולגריה אייר","Air Haifa":"אייר חיפה","easyJet":"איזיג'ט","Smartwings":"סמארטווינגס","Pegasus":"פגסוס","Turkish":"טורקיש","Lufthansa":"לופטהנזה","Austrian":"אוסטריאן","Swiss":"סוויס","ITA":"ITA","Air France":"אייר פראנס","KLM":"KLM","LOT":"לוט","TAROM":"טארום","Cyprus":"סייפרוס","Emirates":"אמירייטס","Etihad":"אתיחאד","flydubai":"פליידובאי","Air Europa":"אייר אירופה","Vueling":"וואלינג","Iberia":"איבריה","British":"בריטיש","Wizz Air":"וויז אייר" };
 const CITY = { TLV:"תל אביב",ATH:"אתונה",SKG:"סלוניקי",HER:"כרתים",RHO:"רודוס",JMK:"מיקונוס",JTR:"סנטוריני",CFU:"קורפו",PRG:"פראג",BUD:"בודפשט",VIE:"וינה",SOF:"סופיה",VAR:"וארנה",BOJ:"בורגס",PDV:"פלובדיב",LCA:"לרנקה",PFO:"פאפוס",OTP:"בוקרשט",BER:"ברלין",MUC:"מינכן",FRA:"פרנקפורט",ROM:"רומא",FCO:"רומא",MXP:"מילאנו",LIN:"מילאנו",BGY:"מילאנו",VCE:"ונציה",NAP:"נאפולי",PAR:"פריז",CDG:"פריז",ORY:"פריז",NCE:"ניס",AMS:"אמסטרדם",BCN:"ברצלונה",MAD:"מדריד",LIS:"ליסבון",LON:"לונדון",LHR:"לונדון",LTN:"לונדון",STN:"לונדון",LGW:"לונדון",DXB:"דובאי",AUH:"אבו דאבי",IST:"איסטנבול",SAW:"איסטנבול",AYT:"אנטליה",BUS:"בטומי",TBS:"טביליסי",KRK:"קרקוב",WAW:"ורשה",BTS:"ברטיסלבה",LJU:"לובליאנה",TIV:"טיבט",TGD:"פודגוריצה",TIA:"טירנה",SPU:"ספליט",DBV:"דוברובניק",ZAG:"זאגרב",BEG:"בלגרד",MLA:"מלטה",RAK:"מרקש",BKK:"בנגקוק",HKT:"פוקט",NYC:"ניו יורק",JFK:"ניו יורק",EWR:"ניו יורק",ZRH:"ציריך",GVA:"ז'נבה",SZG:"זלצבורג",INN:"אינסברוק",TSF:"ונציה",CTA:"קטניה",PMO:"פלרמו",BRI:"בארי",SVQ:"סביליה",AGP:"מלגה",PMI:"מיורקה",OPO:"פורטו",BUH:"בוקרשט",KUT:"קוטאיסי",GYD:"באקו",EVN:"ירוואן" };
 const COUNTRY = { Greece:"יוון","Czech Republic":"צ'כיה",Czechia:"צ'כיה",Hungary:"הונגריה",Austria:"אוסטריה",Bulgaria:"בולגריה",Cyprus:"קפריסין",Romania:"רומניה",Germany:"גרמניה",Italy:"איטליה",France:"צרפת",Netherlands:"הולנד",Spain:"ספרד",Portugal:"פורטוגל","United Kingdom":"אנגליה","United Arab Emirates":"איחוד האמירויות",Turkey:"טורקיה",Türkiye:"טורקיה",Georgia:"גאורגיה",Poland:"פולין",Slovakia:"סלובקיה",Slovenia:"סלובניה",Montenegro:"מונטנגרו",Albania:"אלבניה",Croatia:"קרואטיה",Serbia:"סרביה",Malta:"מלטה",Morocco:"מרוקו",Thailand:"תאילנד",Switzerland:"שווייץ","United States":"ארה\"ב",USA:"ארה\"ב",Azerbaijan:"אזרבייג'ן",Armenia:"ארמניה" };
+// שמות ערים באנגלית (מכתובת המלון) → עברית. אפשר להוסיף ערים לפי הצורך.
+const CITY_EN = { Athens:"אתונה",Thessaloniki:"סלוניקי",Heraklion:"הרקליון",Chania:"חאניה",Rethymno:"רתימנו",Rhodes:"רודוס",Mykonos:"מיקונוס",Santorini:"סנטוריני",Fira:"סנטוריני",Corfu:"קורפו",Halkidiki:"חלקידיקי",Kassandra:"חלקידיקי",Loutraki:"לוטרקי",Prague:"פראג",Praha:"פראג","Karlovy Vary":"קרלובי וארי","Cesky Krumlov":"צ'סקי קרומלוב",Budapest:"בודפשט",Vienna:"וינה",Wien:"וינה",Salzburg:"זלצבורג",Innsbruck:"אינסברוק",Sofia:"סופיה",Velingrad:"ולינגרד",Bansko:"בנסקו",Borovets:"בורובץ",Pamporovo:"פמפורובו",Varna:"וארנה","Golden Sands":"גולדן סנדס",Burgas:"בורגס","Sunny Beach":"סאני ביץ'",Nessebar:"נסבר",Plovdiv:"פלובדיב",Larnaca:"לרנקה",Paphos:"פאפוס",Limassol:"לימסול","Ayia Napa":"איה נאפה",Protaras:"פרוטרס",Bucharest:"בוקרשט",Brasov:"בראשוב",Berlin:"ברלין",Munich:"מינכן",Frankfurt:"פרנקפורט",Rome:"רומא",Roma:"רומא",Milan:"מילאנו",Milano:"מילאנו","Lake Como":"אגם קומו",Como:"קומו","Lake Garda":"אגם גארדה",Verona:"ורונה",Venice:"ונציה",Venezia:"ונציה",Florence:"פירנצה",Firenze:"פירנצה",Pisa:"פיזה",Naples:"נאפולי",Napoli:"נאפולי",Sorrento:"סורנטו",Amalfi:"אמלפי",Positano:"פוזיטנו",Rimini:"רימיני",Bologna:"בולוניה",Turin:"טורינו",Catania:"קטניה",Taormina:"טאורמינה",Palermo:"פלרמו",Bari:"בארי",Dolomites:"הדולומיטים",Paris:"פריז",Nice:"ניס",Cannes:"קאן",Monaco:"מונקו",Amsterdam:"אמסטרדם",Barcelona:"ברצלונה",Madrid:"מדריד",Seville:"סביליה",Malaga:"מלגה",Marbella:"מרבלה",Lisbon:"ליסבון",Porto:"פורטו",London:"לונדון",Dubai:"דובאי","Abu Dhabi":"אבו דאבי",Istanbul:"איסטנבול",Antalya:"אנטליה",Kemer:"קמר",Belek:"בלק",Side:"סידה",Alanya:"אלניה",Batumi:"בטומי",Tbilisi:"טביליסי",Kutaisi:"קוטאיסי",Krakow:"קרקוב",Warsaw:"ורשה",Zakopane:"זקופנה",Bratislava:"ברטיסלבה",Ljubljana:"לובליאנה",Bled:"בלד",Budva:"בודווה",Kotor:"קוטור",Podgorica:"פודגוריצה",Tivat:"טיבט",Tirana:"טירנה",Durres:"דורס",Split:"ספליט",Dubrovnik:"דוברובניק",Zagreb:"זאגרב",Belgrade:"בלגרד",Valletta:"ולטה",Sliema:"סלימה","St. Julian's":"סנט ג'וליאנס",Marrakech:"מרקש",Bangkok:"בנגקוק",Phuket:"פוקט","New York":"ניו יורק",Zurich:"ציריך",Geneva:"ז'נבה",Baku:"באקו",Yerevan:"ירוואן" };
+// "ב" לפני שם עיר: ולינגרד → בוולינגרד, וינה → בווינה
+const inC = s => "ב" + (/^ו(?!ו)/.test(s) ? "ו" : "") + s;
+const cityHe = s => { if (!s) return ""; const k = Object.keys(CITY_EN).find(k => k.toLowerCase() === String(s).toLowerCase()); return k ? CITY_EN[k] : s; };
 const DAY = ["א'","ב'","ג'","ד'","ה'","ו'","ש'"];
 
 const heAir = a => { const k = Object.keys(AIR).sort((x,y)=>y.length-x.length).find(k => a.toLowerCase().includes(k.toLowerCase())); return k ? AIR[k] : a; };
@@ -118,8 +123,13 @@ export function parseQuote(raw) {
   // יעד
   const out = o.flights[0];
   const cc = COUNTRY[o.countryEn] || "";
-  o.city = (out && out.tc && CITY[out.tc]) || o.cityEn || (out && out.tn) || "";
+  // עיר הנחיתה (לפי שדה התעופה) ועיר המלון (לפי כתובת המלון).
+  // היעד נקבע לפי המלון; שדה התעופה נשמר בנפרד כ"נחיתה ב...".
+  o.arrCity = (out && out.tc && CITY[out.tc]) || (out && out.tn) || "";
+  o.hotelCity = cityHe(o.cityEn);
+  o.city = o.hotelCity || o.arrCity || "";
   o.dest = o.city + (cc ? ", " + cc : "");
+  o.diffCity = !!(o.hotelCity && o.arrCity && o.hotelCity !== o.arrCity);
 
   // תאריכים
   o.d1 = out ? out.d : null;
@@ -156,7 +166,7 @@ function bagText(o, word, kg, qty) {
 export function buildMsg(o, name, extras = {}) {
   const L = [];
   L.push("היי" + (name ? " " + name : "") + " 👋");
-  L.push("שמחים לשלוח לך את ההצעה" + (o.city ? " לחופשה ב" + o.city : "") + " ✈️", "");
+  L.push("שמחים לשלוח לך את ההצעה" + (o.city ? " לחופשה " + inC(o.city) : "") + " ✈️", "");
   if (o.flights.length) {
     L.push("✈️ *טיסות*");
     o.flights.forEach((f, i) => {
@@ -167,15 +177,17 @@ export function buildMsg(o, name, extras = {}) {
     if (o.suitcase) L.push("🧳 כולל " + bagText(o, "מזוודה", o.suitcase, o.bags));
     L.push("");
   }
+  if (o.diffCity) L.push("📍 נחיתה " + inC(o.arrCity) + ", והמלון נמצא " + inC(o.hotelCity), "");
   if (o.hotel) {
-    L.push("🏨 *מלון " + o.hotel + "*");
+    L.push("🏨 *מלון " + o.hotel + "*" + (o.diffCity ? " (" + o.hotelCity + ")" : ""));
     if (o.rating) L.push("דירוג אורחים " + o.rating);
     const r = [o.nights ? o.nights + " לילות" : "", (o.rooms > 1 ? o.rooms + " × " : "") + (o.room || "")].filter(x => x.trim()).join(" | ");
     if (r) L.push(r);
     if (o.board) L.push((o.board === "הכל כלול" ? "🍽️ " : "🍳 ") + "כולל " + o.board);
     L.push("");
   }
-  if (extras.transfers) L.push(typeof extras.transfers === "string" ? extras.transfers : "🚐 *כולל העברות* משדה התעופה למלון ובחזרה", "");
+  if (extras.transfers) L.push(typeof extras.transfers === "string" ? extras.transfers : "🚐 *כולל העברות* משדה התעופה" + (o.diffCity ? " " + inC(o.arrCity) + " למלון " + inC(o.hotelCity) : " למלון") + " ובחזרה", "");
+  else if (o.diffCity) L.push("🚐 ניתן להוסיף העברה משדה התעופה " + inC(o.arrCity) + " למלון " + inC(o.hotelCity), "");
   const pax = [o.adults ? o.adults + " מבוגרים" : "", o.children ? o.children + " ילדים" : "", o.infants ? o.infants + " תינוקות" : ""].filter(Boolean).join(" ו-");
   if (pax) L.push("👥 ל-" + pax, "");
   if (o.total) L.push("💰 *מחיר כולל: " + o.total.toLocaleString("he-IL") + " ₪*");
